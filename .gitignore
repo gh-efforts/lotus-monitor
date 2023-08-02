@@ -1,3 +1,5 @@
+config_test.json
+.DS_Store
 .vscode
 .idea
 lotus-monitor

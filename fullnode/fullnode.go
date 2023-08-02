@@ -2,31 +2,60 @@ package fullnode
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/go-jsonrpc"
+	"github.com/filecoin-project/lotus/api/client"
 	"github.com/filecoin-project/lotus/api/v0api"
-	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/gh-efforts/lotus-monitor/metrics"
+	"github.com/gh-efforts/lotus-monitor/config"
 	logging "github.com/ipfs/go-log/v2"
-	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
 )
 
 var log = logging.Logger("fullnode")
 
 type FullNode struct {
+	ctx context.Context
+
 	api    v0api.FullNode
-	maddr  address.Address
-	actors map[address.Address]string
+	closer jsonrpc.ClientCloser
+
+	miners []address.Address
 }
 
-func NewFullNode(api v0api.FullNode, maddr address.Address) *FullNode {
-	return &FullNode{
-		api:    api,
-		maddr:  maddr,
-		actors: make(map[address.Address]string),
+func NewFullNode(ctx context.Context, conf *config.Config) (*FullNode, error) {
+	var miners []address.Address
+	for m, _ := range conf.Miners {
+		a, err := address.NewFromString(m)
+		if err != nil {
+			return nil, err
+		}
+		miners = append(miners, a)
 	}
+
+	addr := "ws://" + conf.Lotus.Addr + "/rpc/v0"
+	headers := http.Header{"Authorization": []string{"Bearer " + conf.Lotus.Token}}
+	api, closer, err := client.NewFullNodeRPCV0(ctx, addr, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	head, err := api.ChainHead(ctx)
+	if err != nil {
+		return nil, err
+	}
+	log.Infof("fullnode chain height: %d", head.Height())
+	log.Infof("monitor miner list: %s", miners)
+
+	n := &FullNode{
+		ctx:    ctx,
+		api:    api,
+		closer: closer,
+		miners: miners,
+	}
+
+	return n, nil
 }
 
 func (n *FullNode) Run(ctx context.Context) {
@@ -35,42 +64,13 @@ func (n *FullNode) Run(ctx context.Context) {
 		for {
 			select {
 			case <-t.C:
-				n.balanceRecord(ctx)
+				n.minerRecords()
+				n.deadlineRecords()
 			case <-ctx.Done():
+				n.closer()
+				log.Info("closed to fullnode")
 				return
 			}
 		}
 	}()
-}
-
-func (n *FullNode) Init(ctx context.Context) error {
-	mi, err := n.api.StateMinerInfo(ctx, n.maddr, types.EmptyTSK)
-	if err != nil {
-		return err
-	}
-
-	n.actors[mi.Owner] = "owner"
-	n.actors[mi.Worker] = "worker"
-	for _, c := range mi.ControlAddresses {
-		n.actors[c] = "control"
-	}
-
-	return nil
-}
-
-func (n *FullNode) balanceRecord(ctx context.Context) {
-	for k, v := range n.actors {
-		ctx, _ = tag.New(ctx,
-			tag.Upsert(metrics.ActorAddress, k.String()),
-			tag.Upsert(metrics.AddressType, v),
-		)
-
-		actor, err := n.api.StateGetActor(ctx, k, types.EmptyTSK)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-
-		stats.Record(ctx, metrics.Balance.M(types.BigDivFloat(actor.Balance, types.FromFil(1))))
-	}
 }
