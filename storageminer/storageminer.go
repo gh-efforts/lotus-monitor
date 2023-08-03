@@ -23,10 +23,10 @@ type minerInfo struct {
 	size   abi.SectorSize
 }
 type StorageMiner struct {
-	ctx           context.Context
-	miners        map[address.Address]minerInfo
-	running       map[abi.SectorSize]map[string]time.Duration
-	minerInterval time.Duration
+	ctx      context.Context
+	miners   map[address.Address]minerInfo
+	running  map[abi.SectorSize]map[string]time.Duration
+	interval time.Duration
 }
 
 func NewStorageMiner(ctx context.Context, conf *config.Config) (*StorageMiner, error) {
@@ -80,28 +80,27 @@ func NewStorageMiner(ctx context.Context, conf *config.Config) (*StorageMiner, e
 	}
 	running[abi.SectorSize(34359738368)] = entry32
 	running[abi.SectorSize(68719476736)] = entry64
-	log.Infof("running duration map: %s", running)
 
-	interval, err := time.ParseDuration(conf.MinerInterval)
+	interval, err := time.ParseDuration(conf.RecordInterval.Miner)
 	if err != nil {
 		return nil, err
 	}
 
 	sm := &StorageMiner{
-		ctx:           ctx,
-		miners:        miners,
-		running:       running,
-		minerInterval: interval,
+		ctx:      ctx,
+		miners:   miners,
+		running:  running,
+		interval: interval,
 	}
 
-	log.Info("Init storage miner success")
+	log.Infow("NewStorageMiner", "interval", conf.RecordInterval.Miner, "running", fmt.Sprintf("%s", running))
 	return sm, nil
 
 }
 
 func (m *StorageMiner) Run(ctx context.Context) {
 	go func() {
-		t := time.NewTicker(m.minerInterval)
+		t := time.NewTicker(m.interval)
 		for {
 			select {
 			case <-t.C:

@@ -15,6 +15,7 @@ import (
 
 	cliutil "github.com/filecoin-project/lotus/cli/util"
 	"github.com/gh-efforts/lotus-monitor/config"
+	"github.com/gh-efforts/lotus-monitor/filfox"
 	"github.com/gh-efforts/lotus-monitor/fullnode"
 	"github.com/gh-efforts/lotus-monitor/metrics"
 	"github.com/gh-efforts/lotus-monitor/storageminer"
@@ -88,6 +89,12 @@ var runCmd = &cli.Command{
 			return err
 		}
 		m.Run(ctx)
+
+		f, err := filfox.NewFilFox(ctx, conf)
+		if err != nil {
+			return err
+		}
+		f.Run(ctx)
 
 		log.Infow("monitor server", "listen", conf.Listen)
 

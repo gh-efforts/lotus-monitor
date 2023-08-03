@@ -22,11 +22,17 @@ type FullNode struct {
 	closer jsonrpc.ClientCloser
 
 	miners []address.Address
+
+	interval time.Duration
 }
 
 func NewFullNode(ctx context.Context, conf *config.Config) (*FullNode, error) {
+	interval, err := time.ParseDuration(conf.RecordInterval.Lotus)
+	if err != nil {
+		return nil, err
+	}
 	var miners []address.Address
-	for m, _ := range conf.Miners {
+	for m := range conf.Miners {
 		a, err := address.NewFromString(m)
 		if err != nil {
 			return nil, err
@@ -45,22 +51,22 @@ func NewFullNode(ctx context.Context, conf *config.Config) (*FullNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("fullnode chain height: %d", head.Height())
-	log.Infof("monitor miner list: %s", miners)
 
 	n := &FullNode{
-		ctx:    ctx,
-		api:    api,
-		closer: closer,
-		miners: miners,
+		ctx:      ctx,
+		api:      api,
+		closer:   closer,
+		miners:   miners,
+		interval: interval,
 	}
 
+	log.Infow("NewFullNode", "interval", conf.RecordInterval.Lotus, "head", head.Height(), "miners", miners)
 	return n, nil
 }
 
 func (n *FullNode) Run(ctx context.Context) {
 	go func() {
-		t := time.NewTicker(time.Second * 30)
+		t := time.NewTicker(n.interval)
 		for {
 			select {
 			case <-t.C:

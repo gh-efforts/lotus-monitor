@@ -10,12 +10,19 @@ type APIInfo struct {
 	Token string `json:"token"`
 }
 
+type RecordInterval struct {
+	Lotus  string `json:"lotus"`
+	Miner  string `json:"miner"`
+	FilFox string `json:"filFox"`
+}
+
 type Config struct {
-	Listen        string               `json:"listen"`
-	Lotus         APIInfo              `json:"lotus"`
-	Miners        map[string]APIInfo   `json:"miners"`
-	Running       map[string][2]string `json:"running"`
-	MinerInterval string               `json:"minerInterval"`
+	Listen         string               `json:"listen"`
+	Lotus          APIInfo              `json:"lotus"`
+	Miners         map[string]APIInfo   `json:"miners"`
+	Running        map[string][2]string `json:"running"`
+	RecordInterval RecordInterval       `json:"recordInterval"`
+	FilFoxURL      string               `json:"filFoxURL"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -52,11 +59,18 @@ func DefaultConfig() *Config {
 		"GET": {"1m", "2m"},
 	}
 
+	interval := RecordInterval{
+		Lotus:  "30s",
+		Miner:  "1m",
+		FilFox: "3m",
+	}
+
 	return &Config{
-		Listen:        "0.0.0.0:6789",
-		Lotus:         lotus,
-		Miners:        miners,
-		Running:       running,
-		MinerInterval: "1m",
+		Listen:         "0.0.0.0:6789",
+		Lotus:          lotus,
+		Miners:         miners,
+		Running:        running,
+		RecordInterval: interval,
+		FilFoxURL:      "https://filfox.info/api/v1",
 	}
 }

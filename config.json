@@ -28,5 +28,10 @@
 			"10m"
 		]
 	},
-	"minerInterval": "1m"
+	"recordInterval": {
+		"lotus": "30s",
+		"miner": "1m",
+		"filFox": "3m"
+	},
+	"filFoxURL": "https://filfox.info/api/v1"
 }
