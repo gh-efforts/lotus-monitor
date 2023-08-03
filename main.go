@@ -26,7 +26,7 @@ var (
 
 func main() {
 	logging.SetLogLevel("*", "INFO")
-	log.Info("Starting lotus monitor...")
+	log.Info("starting lotus monitor...")
 
 	local := []*cli.Command{
 		runCmd,

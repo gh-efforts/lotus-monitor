@@ -19,6 +19,8 @@ var (
 	AddressType, _  = tag.NewKey("address_type")
 
 	DeadlineIndex, _ = tag.NewKey("deadline_index")
+
+	TaskType, _ = tag.NewKey("task_type")
 )
 
 // Measures
@@ -31,6 +33,8 @@ var (
 	MinerRecoveries = stats.Int64("miner/recoveries", "recovery sectors", stats.UnitDimensionless)
 
 	DeadlineCost = stats.Int64("deadline/cost", "proven cost of current deadline", "epoch")
+
+	JobsTimeout = stats.Int64("miner/jobs", "the number of jobs that timed out", stats.UnitDimensionless)
 )
 
 // Views
@@ -62,6 +66,11 @@ var (
 		Measure:     DeadlineCost,
 		TagKeys:     []tag.Key{MinerID, DeadlineIndex},
 	}
+	JobsTimeoutView = &view.View{
+		Aggregation: view.LastValue(),
+		Measure:     JobsTimeout,
+		TagKeys:     []tag.Key{MinerID, TaskType},
+	}
 )
 
 var Views = []*view.View{
@@ -70,6 +79,7 @@ var Views = []*view.View{
 	MinerFaultsView,
 	MinerRecoveriesView,
 	DeadlineCostView,
+	JobsTimeoutView,
 }
 
 // SinceInMilliseconds returns the duration of time since the provide time as a float64.

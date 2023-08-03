@@ -20,9 +20,10 @@ func (n *FullNode) deadlineRecords() error {
 			defer wg.Done()
 			err := n.deadlineRecord(maddr)
 			if err != nil {
-				log.Errorw("deadline record", "maddr", maddr, "err", err)
+				log.Errorw("deadlineRecord failed", "miner", maddr, "err", err)
+			} else {
+				log.Infow("deadlineRecord success", "miner", maddr)
 			}
-			log.Infof("miner: %s deadlineRecord success", maddr)
 		}(maddr)
 	}
 	wg.Wait()

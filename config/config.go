@@ -11,9 +11,11 @@ type APIInfo struct {
 }
 
 type Config struct {
-	Listen string             `json:"listen"`
-	Lotus  APIInfo            `json:"lotus"`
-	Miners map[string]APIInfo `json:"miners"`
+	Listen        string               `json:"listen"`
+	Lotus         APIInfo              `json:"lotus"`
+	Miners        map[string]APIInfo   `json:"miners"`
+	Running       map[string][2]string `json:"running"`
+	MinerInterval string               `json:"minerInterval"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -33,16 +35,28 @@ func LoadConfig(path string) (*Config, error) {
 
 func DefaultConfig() *Config {
 	lotus := APIInfo{
-		Addr:  "",
-		Token: "",
+		Addr:  "10.122.1.29:1234",
+		Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIl19.l04qKWmgyDRqeT3kjMfxxhQpKwLmYk8eeDIW-NcaX_c",
+	}
+	miner := APIInfo{
+		Addr:  "10.122.1.29:2345",
+		Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.tlJ8d4RIudknLHrKDSjyKzfbh8hGp9Ez1FZszblQLAI",
 	}
 	miners := make(map[string]APIInfo)
-	miners["f01155"] = lotus
-	miners["f010202"] = lotus
+	miners["t017387"] = miner
+
+	running := map[string][2]string{
+		"AP":  {"1m", "2m"},
+		"PC1": {"3h", "5h"},
+		"PC2": {"5m", "10m"},
+		"GET": {"1m", "2m"},
+	}
 
 	return &Config{
-		Listen: "0.0.0.0:6789",
-		Lotus:  lotus,
-		Miners: miners,
+		Listen:        "0.0.0.0:6789",
+		Lotus:         lotus,
+		Miners:        miners,
+		Running:       running,
+		MinerInterval: "1m",
 	}
 }

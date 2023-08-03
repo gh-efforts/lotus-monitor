@@ -1,17 +1,32 @@
 {
 	"listen": "0.0.0.0:6789",
 	"lotus": {
-		"addr": "",
-		"token": ""
+		"addr": "10.122.1.29:1234",
+		"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIl19.l04qKWmgyDRqeT3kjMfxxhQpKwLmYk8eeDIW-NcaX_c"
 	},
 	"miners": {
-		"f010202": {
-			"addr": "",
-			"token": ""
-		},
-		"f01155": {
-			"addr": "",
-			"token": ""
+		"t017387": {
+			"addr": "10.122.1.29:2345",
+			"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.tlJ8d4RIudknLHrKDSjyKzfbh8hGp9Ez1FZszblQLAI"
 		}
-	}
+	},
+	"running": {
+		"AP": [
+			"1m",
+			"2m"
+		],
+		"GET": [
+			"1m",
+			"2m"
+		],
+		"PC1": [
+			"3h",
+			"5h"
+		],
+		"PC2": [
+			"5m",
+			"10m"
+		]
+	},
+	"minerInterval": "1m"
 }
