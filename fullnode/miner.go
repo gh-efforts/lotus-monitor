@@ -34,7 +34,7 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 		tag.Upsert(metrics.MinerID, maddr.String()),
 	)
 
-	faults, err := n.api.StateMinerFaults(ctx, maddr, types.EmptyTSK)
+	faults, err := n.API.StateMinerFaults(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 	}
 	stats.Record(ctx, metrics.MinerFaults.M(int64(f)))
 
-	recoveries, err := n.api.StateMinerRecoveries(ctx, maddr, types.EmptyTSK)
+	recoveries, err := n.API.StateMinerRecoveries(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 	}
 	stats.Record(ctx, metrics.MinerRecoveries.M(int64(r)))
 
-	mi, err := n.api.StateMinerInfo(ctx, maddr, types.EmptyTSK)
+	mi, err := n.API.StateMinerInfo(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 			tag.Upsert(metrics.ActorAddress, k.String()),
 			tag.Upsert(metrics.AddressType, v),
 		)
-		actor, err := n.api.StateGetActor(ctx, k, types.EmptyTSK)
+		actor, err := n.API.StateGetActor(ctx, k, types.EmptyTSK)
 		if err != nil {
 			return err
 		}

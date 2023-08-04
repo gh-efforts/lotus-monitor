@@ -35,12 +35,12 @@ func (n *FullNode) deadlineRecord(maddr address.Address) error {
 		tag.Upsert(metrics.MinerID, maddr.String()),
 	)
 
-	di, err := n.api.StateMinerProvingDeadline(ctx, maddr, types.EmptyTSK)
+	di, err := n.API.StateMinerProvingDeadline(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
 
-	deadlines, err := n.api.StateMinerDeadlines(ctx, maddr, types.EmptyTSK)
+	deadlines, err := n.API.StateMinerDeadlines(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (n *FullNode) deadlineRecord(maddr address.Address) error {
 		return err
 	}
 
-	partitions, err := n.api.StateMinerPartitions(ctx, maddr, uint64(dlIdx), types.EmptyTSK)
+	partitions, err := n.API.StateMinerPartitions(ctx, maddr, uint64(dlIdx), types.EmptyTSK)
 	if err != nil {
 		return err
 	}

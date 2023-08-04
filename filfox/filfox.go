@@ -41,14 +41,14 @@ func NewFilFox(ctx context.Context, conf *config.Config) (*FilFox, error) {
 	return f, nil
 }
 
-func (f *FilFox) Run(ctx context.Context) {
+func (f *FilFox) Run() {
 	go func() {
 		t := time.NewTicker(f.interval)
 		for {
 			select {
 			case <-t.C:
 				f.luckyValueRecords()
-			case <-ctx.Done():
+			case <-f.ctx.Done():
 				return
 			}
 		}

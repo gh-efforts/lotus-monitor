@@ -23,6 +23,9 @@ var (
 	TaskType, _ = tag.NewKey("task_type")
 
 	LuckyValueDay, _ = tag.NewKey("lucky_value_day") //1day, 7day, 30day
+
+	BlockCID, _    = tag.NewKey("block_cid")
+	BlockHeight, _ = tag.NewKey("block_height")
 )
 
 // Measures
@@ -39,6 +42,9 @@ var (
 	JobsTimeout = stats.Int64("miner/jobs", "the number of jobs that timed out", stats.UnitDimensionless)
 
 	LuckyValue = stats.Float64("lucky_value", "lucky value of miner", stats.UnitDimensionless)
+
+	MiningBlockDuration = stats.Float64("mining/block_duration_s", "duration took of mining a block", stats.UnitSeconds)
+	MiningOrphanBlock   = stats.Int64("mining/orphan_block", "mined orphan block", stats.UnitBytes)
 )
 
 // Views
@@ -80,6 +86,16 @@ var (
 		Measure:     LuckyValue,
 		TagKeys:     []tag.Key{MinerID, LuckyValueDay},
 	}
+	MiningBlockDurationView = &view.View{
+		Measure:     MiningBlockDuration,
+		Aggregation: view.LastValue(),
+		TagKeys:     []tag.Key{MinerID, BlockCID, BlockHeight},
+	}
+	MiningOrphanBlockView = &view.View{
+		Measure:     MiningOrphanBlock,
+		Aggregation: view.LastValue(),
+		TagKeys:     []tag.Key{MinerID, BlockCID, BlockHeight},
+	}
 )
 
 var Views = []*view.View{
@@ -90,6 +106,8 @@ var Views = []*view.View{
 	DeadlineCostView,
 	JobsTimeoutView,
 	LuckyValueView,
+	MiningBlockDurationView,
+	MiningOrphanBlockView,
 }
 
 // SinceInMilliseconds returns the duration of time since the provide time as a float64.

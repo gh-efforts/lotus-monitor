@@ -18,7 +18,7 @@ var log = logging.Logger("fullnode")
 type FullNode struct {
 	ctx context.Context
 
-	api    v0api.FullNode
+	API    v0api.FullNode
 	closer jsonrpc.ClientCloser
 
 	miners []address.Address
@@ -54,7 +54,7 @@ func NewFullNode(ctx context.Context, conf *config.Config) (*FullNode, error) {
 
 	n := &FullNode{
 		ctx:      ctx,
-		api:      api,
+		API:      api,
 		closer:   closer,
 		miners:   miners,
 		interval: interval,
@@ -64,7 +64,7 @@ func NewFullNode(ctx context.Context, conf *config.Config) (*FullNode, error) {
 	return n, nil
 }
 
-func (n *FullNode) Run(ctx context.Context) {
+func (n *FullNode) Run() {
 	go func() {
 		t := time.NewTicker(n.interval)
 		for {
@@ -72,7 +72,7 @@ func (n *FullNode) Run(ctx context.Context) {
 			case <-t.C:
 				n.minerRecords()
 				n.deadlineRecords()
-			case <-ctx.Done():
+			case <-n.ctx.Done():
 				n.closer()
 				log.Info("closed to fullnode")
 				return

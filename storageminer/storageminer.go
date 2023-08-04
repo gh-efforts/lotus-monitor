@@ -98,14 +98,14 @@ func NewStorageMiner(ctx context.Context, conf *config.Config) (*StorageMiner, e
 
 }
 
-func (m *StorageMiner) Run(ctx context.Context) {
+func (m *StorageMiner) Run() {
 	go func() {
 		t := time.NewTicker(m.interval)
 		for {
 			select {
 			case <-t.C:
 				m.jobsRecords()
-			case <-ctx.Done():
+			case <-m.ctx.Done():
 				m.close()
 				log.Info("closed to storage miner")
 				return

@@ -14,6 +14,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 
 	cliutil "github.com/filecoin-project/lotus/cli/util"
+	"github.com/gh-efforts/lotus-monitor/blocks"
 	"github.com/gh-efforts/lotus-monitor/config"
 	"github.com/gh-efforts/lotus-monitor/filfox"
 	"github.com/gh-efforts/lotus-monitor/fullnode"
@@ -82,19 +83,22 @@ var runCmd = &cli.Command{
 		if err != nil {
 			return err
 		}
-		n.Run(ctx)
+		n.Run()
 
 		m, err := storageminer.NewStorageMiner(ctx, conf)
 		if err != nil {
 			return err
 		}
-		m.Run(ctx)
+		m.Run()
 
 		f, err := filfox.NewFilFox(ctx, conf)
 		if err != nil {
 			return err
 		}
-		f.Run(ctx)
+		f.Run()
+
+		b := blocks.NewBlocks(ctx, n.API)
+		b.Run()
 
 		log.Infow("monitor server", "listen", conf.Listen)
 
@@ -106,6 +110,7 @@ var runCmd = &cli.Command{
 		}()
 
 		http.Handle("/metrics", exporter)
+		http.Handle("/blocks", b)
 		server := &http.Server{
 			Addr: conf.Listen,
 		}
