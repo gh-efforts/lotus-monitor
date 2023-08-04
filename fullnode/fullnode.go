@@ -59,12 +59,12 @@ func NewFullNode(ctx context.Context, conf *config.Config) (*FullNode, error) {
 		miners:   miners,
 		interval: interval,
 	}
-
+	n.run()
 	log.Infow("NewFullNode", "interval", conf.RecordInterval.Lotus, "head", head.Height(), "miners", miners)
 	return n, nil
 }
 
-func (n *FullNode) Run() {
+func (n *FullNode) run() {
 	go func() {
 		t := time.NewTicker(n.interval)
 		for {

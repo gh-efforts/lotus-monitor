@@ -38,14 +38,17 @@ type Blocks struct {
 }
 
 func NewBlocks(ctx context.Context, api v0api.FullNode) *Blocks {
-	return &Blocks{
+	b := &Blocks{
 		ctx:    ctx,
 		api:    api,
 		blocks: make(map[cid.Cid]Block),
 	}
+	b.run()
+	log.Infow("NewBlocks")
+	return b
 }
 
-func (b *Blocks) Run() {
+func (b *Blocks) run() {
 	go func() {
 		t := time.NewTicker(time.Minute * 3)
 		for {

@@ -83,22 +83,18 @@ var runCmd = &cli.Command{
 		if err != nil {
 			return err
 		}
-		n.Run()
 
-		m, err := storageminer.NewStorageMiner(ctx, conf)
+		_, err = storageminer.NewStorageMiner(ctx, conf)
 		if err != nil {
 			return err
 		}
-		m.Run()
 
-		f, err := filfox.NewFilFox(ctx, conf)
+		_, err = filfox.NewFilFox(ctx, conf)
 		if err != nil {
 			return err
 		}
-		f.Run()
 
 		b := blocks.NewBlocks(ctx, n.API)
-		b.Run()
 
 		log.Infow("monitor server", "listen", conf.Listen)
 

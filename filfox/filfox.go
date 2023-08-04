@@ -37,11 +37,12 @@ func NewFilFox(ctx context.Context, conf *config.Config) (*FilFox, error) {
 		interval: interval,
 	}
 
+	f.run()
 	log.Infow("NewFilFox", "interval", conf.RecordInterval.FilFox)
 	return f, nil
 }
 
-func (f *FilFox) Run() {
+func (f *FilFox) run() {
 	go func() {
 		t := time.NewTicker(f.interval)
 		for {

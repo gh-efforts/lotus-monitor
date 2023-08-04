@@ -93,12 +93,13 @@ func NewStorageMiner(ctx context.Context, conf *config.Config) (*StorageMiner, e
 		interval: interval,
 	}
 
+	sm.run()
 	log.Infow("NewStorageMiner", "interval", conf.RecordInterval.Miner, "running", fmt.Sprintf("%s", running))
 	return sm, nil
 
 }
 
-func (m *StorageMiner) Run() {
+func (m *StorageMiner) run() {
 	go func() {
 		t := time.NewTicker(m.interval)
 		for {
