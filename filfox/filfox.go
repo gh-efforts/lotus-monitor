@@ -2,6 +2,7 @@ package filfox
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/gh-efforts/lotus-monitor/config"
@@ -13,6 +14,7 @@ var log = logging.Logger("filfox")
 type FilFox struct {
 	ctx      context.Context
 	URL      string
+	Client   http.Client
 	miners   []string
 	interval time.Duration
 }
@@ -30,6 +32,7 @@ func NewFilFox(ctx context.Context, conf *config.Config) (*FilFox, error) {
 	f := &FilFox{
 		ctx:      ctx,
 		URL:      conf.FilFoxURL,
+		Client:   http.Client{},
 		miners:   miners,
 		interval: interval,
 	}
@@ -50,8 +53,4 @@ func (f *FilFox) Run(ctx context.Context) {
 			}
 		}
 	}()
-}
-
-func (f *FilFox) luckyValueRecords() error {
-	return nil
 }

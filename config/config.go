@@ -61,7 +61,7 @@ func DefaultConfig() *Config {
 
 	interval := RecordInterval{
 		Lotus:  "30s",
-		Miner:  "1m",
+		Miner:  "30s",
 		FilFox: "3m",
 	}
 
@@ -71,6 +71,7 @@ func DefaultConfig() *Config {
 		Miners:         miners,
 		Running:        running,
 		RecordInterval: interval,
-		FilFoxURL:      "https://filfox.info/api/v1",
+		FilFoxURL:      "https://calibration.filfox.info/api/v1",
+		//FilFoxURL:      "https://filfox.info/api/v1",
 	}
 }
