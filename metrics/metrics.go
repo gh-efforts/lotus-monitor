@@ -43,8 +43,8 @@ var (
 
 	LuckyValue = stats.Float64("lucky_value", "lucky value of miner", stats.UnitDimensionless)
 
-	MiningBlockDuration = stats.Float64("mining/block_duration_s", "duration took of mining a block", stats.UnitSeconds)
-	MiningOrphanBlock   = stats.Int64("mining/orphan_block", "mined orphan block", stats.UnitBytes)
+	MiningBlock       = stats.Float64("mining/block", "mining block(on chain) took in second", stats.UnitSeconds)
+	MiningOrphanBlock = stats.Float64("mining/orphan_block", "mining orphan block", stats.UnitSeconds)
 )
 
 // Views
@@ -86,8 +86,8 @@ var (
 		Measure:     LuckyValue,
 		TagKeys:     []tag.Key{MinerID, LuckyValueDay},
 	}
-	MiningBlockDurationView = &view.View{
-		Measure:     MiningBlockDuration,
+	MiningBlockView = &view.View{
+		Measure:     MiningBlock,
 		Aggregation: view.LastValue(),
 		TagKeys:     []tag.Key{MinerID, BlockCID, BlockHeight},
 	}
@@ -106,7 +106,7 @@ var Views = []*view.View{
 	DeadlineCostView,
 	JobsTimeoutView,
 	LuckyValueView,
-	MiningBlockDurationView,
+	MiningBlockView,
 	MiningOrphanBlockView,
 }
 

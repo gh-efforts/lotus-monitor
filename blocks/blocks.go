@@ -82,7 +82,7 @@ func (b *Blocks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	b.add(block)
-	log.Infow("reveived block", "cid", block.Cid, "miner", block.Miner)
+	log.Infow("received block", "cid", block.Cid, "miner", block.Miner)
 }
 
 func (b *Blocks) add(block Block) {
@@ -119,7 +119,7 @@ func (b *Blocks) recordBlock(block Block) {
 		tag.Upsert(metrics.BlockCID, block.Cid.String()),
 		tag.Upsert(metrics.BlockHeight, block.Height.String()),
 	)
-	stats.Record(ctx, metrics.MiningBlockDuration.M(float64(block.Took)))
+	stats.Record(ctx, metrics.MiningBlock.M(float64(block.Took.Seconds())))
 }
 
 func (b *Blocks) recordOrphan(block Block) {
@@ -128,7 +128,7 @@ func (b *Blocks) recordOrphan(block Block) {
 		tag.Upsert(metrics.BlockCID, block.Cid.String()),
 		tag.Upsert(metrics.BlockHeight, block.Height.String()),
 	)
-	stats.Record(ctx, metrics.MiningOrphanBlock.M(1))
+	stats.Record(ctx, metrics.MiningOrphanBlock.M(float64(block.Took.Seconds())))
 }
 
 func (b *Blocks) orphanCheck() error {
