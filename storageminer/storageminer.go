@@ -26,6 +26,7 @@ type StorageMiner struct {
 	ctx      context.Context
 	miners   map[address.Address]minerInfo
 	running  map[abi.SectorSize]map[string]time.Duration
+	tasks    []string
 	interval time.Duration
 }
 
@@ -66,7 +67,9 @@ func NewStorageMiner(ctx context.Context, conf *config.Config) (*StorageMiner, e
 	running := map[abi.SectorSize]map[string]time.Duration{}
 	entry32 := map[string]time.Duration{}
 	entry64 := map[string]time.Duration{}
+	tasks := []string{}
 	for task, td := range conf.Running {
+		tasks = append(tasks, task)
 		td32, err := time.ParseDuration(td[0])
 		if err != nil {
 			return nil, err
@@ -90,6 +93,7 @@ func NewStorageMiner(ctx context.Context, conf *config.Config) (*StorageMiner, e
 		ctx:      ctx,
 		miners:   miners,
 		running:  running,
+		tasks:    tasks,
 		interval: interval,
 	}
 

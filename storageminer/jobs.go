@@ -42,6 +42,9 @@ func (m *StorageMiner) jobsRecord(maddr address.Address) error {
 	}
 
 	result := map[string]int64{}
+	for _, task := range m.tasks {
+		result[task] = 0
+	}
 	for _, jobs := range jobss {
 		for _, job := range jobs {
 			if job.RunWait != 0 {

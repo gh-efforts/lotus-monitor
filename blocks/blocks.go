@@ -67,6 +67,8 @@ func (b *Blocks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&block)
 	if err != nil {
 		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	b.add(block)
