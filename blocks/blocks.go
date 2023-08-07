@@ -52,13 +52,13 @@ func NewBlocks(ctx context.Context, api v0api.FullNode, conf *config.Config) (*B
 		blocks:   make(map[cid.Cid]Block),
 	}
 	b.run()
-	log.Infow("NewBlocks")
+	log.Infow("NewBlocks", "interval", interval.String())
 	return b, nil
 }
 
 func (b *Blocks) run() {
 	go func() {
-		t := time.NewTicker(time.Minute * 3)
+		t := time.NewTicker(b.interval)
 		for {
 			select {
 			case <-t.C:

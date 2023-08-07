@@ -38,7 +38,7 @@ func NewFilFox(ctx context.Context, conf *config.Config) (*FilFox, error) {
 	}
 
 	f.run()
-	log.Infow("NewFilFox", "interval", conf.RecordInterval.FilFox)
+	log.Infow("NewFilFox", "interval", interval.String())
 	return f, nil
 }
 

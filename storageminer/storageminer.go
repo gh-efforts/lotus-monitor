@@ -98,7 +98,7 @@ func NewStorageMiner(ctx context.Context, conf *config.Config) (*StorageMiner, e
 	}
 
 	sm.run()
-	log.Infow("NewStorageMiner", "interval", conf.RecordInterval.Miner, "running", fmt.Sprintf("%s", running))
+	log.Infow("NewStorageMiner", "interval", interval.String(), "running", fmt.Sprintf("%s", running))
 	return sm, nil
 
 }

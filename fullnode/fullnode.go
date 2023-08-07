@@ -60,7 +60,7 @@ func NewFullNode(ctx context.Context, conf *config.Config) (*FullNode, error) {
 		interval: interval,
 	}
 	n.run()
-	log.Infow("NewFullNode", "interval", conf.RecordInterval.Lotus, "head", head.Height(), "miners", miners)
+	log.Infow("NewFullNode", "interval", interval.String(), "head", head.Height(), "miners", miners)
 	return n, nil
 }
 
