@@ -14,6 +14,7 @@ type RecordInterval struct {
 	Lotus  string `json:"lotus"`
 	Miner  string `json:"miner"`
 	FilFox string `json:"filFox"`
+	Blocks string `json:"blocks"`
 }
 
 type Config struct {
@@ -63,6 +64,7 @@ func DefaultConfig() *Config {
 		Lotus:  "30s",
 		Miner:  "30s",
 		FilFox: "3m",
+		Blocks: "1m",
 	}
 
 	return &Config{

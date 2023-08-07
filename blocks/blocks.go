@@ -10,6 +10,8 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/lotus/api/v0api"
+	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/gh-efforts/lotus-monitor/config"
 	"github.com/gh-efforts/lotus-monitor/metrics"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
@@ -30,22 +32,28 @@ type Block struct {
 }
 
 type Blocks struct {
-	ctx context.Context
-	api v0api.FullNode
+	ctx      context.Context
+	api      v0api.FullNode
+	interval time.Duration
 
 	lk     sync.Mutex
 	blocks map[cid.Cid]Block
 }
 
-func NewBlocks(ctx context.Context, api v0api.FullNode) *Blocks {
+func NewBlocks(ctx context.Context, api v0api.FullNode, conf *config.Config) (*Blocks, error) {
+	interval, err := time.ParseDuration(conf.RecordInterval.Blocks)
+	if err != nil {
+		return nil, err
+	}
 	b := &Blocks{
-		ctx:    ctx,
-		api:    api,
-		blocks: make(map[cid.Cid]Block),
+		ctx:      ctx,
+		api:      api,
+		interval: interval,
+		blocks:   make(map[cid.Cid]Block),
 	}
 	b.run()
 	log.Infow("NewBlocks")
-	return b
+	return b, nil
 }
 
 func (b *Blocks) run() {
@@ -54,7 +62,9 @@ func (b *Blocks) run() {
 		for {
 			select {
 			case <-t.C:
-				b.orphanCheck()
+				if err := b.orphanCheck(); err != nil {
+					log.Error(err)
+				}
 			case <-b.ctx.Done():
 				return
 			}
@@ -72,7 +82,7 @@ func (b *Blocks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	b.add(block)
-	b.recordBlock(block)
+	log.Infow("reveived block", "cid", block.Cid, "miner", block.Miner)
 }
 
 func (b *Blocks) add(block Block) {
@@ -89,13 +99,13 @@ func (b *Blocks) delete(blockCid cid.Cid) {
 	delete(b.blocks, blockCid)
 }
 
-func (b *Blocks) filter() []Block {
+func (b *Blocks) filter(head abi.ChainEpoch) []Block {
 	b.lk.Lock()
 	defer b.lk.Unlock()
 
 	var bb []Block
 	for _, block := range b.blocks {
-		if time.Since(block.Now) > 3*time.Minute {
+		if block.Height < head {
 			bb = append(bb, block)
 		}
 	}
@@ -121,16 +131,26 @@ func (b *Blocks) recordOrphan(block Block) {
 	stats.Record(ctx, metrics.MiningOrphanBlock.M(1))
 }
 
-func (b *Blocks) orphanCheck() {
-	for _, block := range b.filter() {
-		bh, err := b.api.ChainGetBlock(b.ctx, block.Cid)
+func (b *Blocks) orphanCheck() error {
+	head, err := b.api.ChainHead(b.ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, block := range b.filter(head.Height()) {
+		ts, err := b.api.ChainGetTipSetByHeight(b.ctx, block.Height, types.EmptyTSK)
 		if err != nil {
-			log.Error(err)
-			continue
+			return err
 		}
-		if bh == nil {
+
+		if ts.Contains(block.Cid) {
+			b.recordBlock(block)
+		} else {
 			b.recordOrphan(block)
 		}
+
 		b.delete(block.Cid)
 	}
+
+	return nil
 }
