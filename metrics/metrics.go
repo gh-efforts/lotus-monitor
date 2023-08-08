@@ -9,6 +9,8 @@ import (
 	"go.opencensus.io/tag"
 )
 
+var blockTookDurationDistribution = view.Distribution(0, 1, 2, 3, 5, 7, 10, 30, 60, 120)
+
 // Tags
 var (
 	Version, _ = tag.NewKey("version")
@@ -32,19 +34,21 @@ var (
 var (
 	Info = stats.Int64("info", "Arbitrary counter to tag monitor info to", stats.UnitDimensionless)
 
-	Balance = stats.Float64("balance", "actor balance", "FIL")
+	Balance = stats.Float64("balance", "actor balance (FIL)", "FIL")
 
 	MinerFaults     = stats.Int64("miner/faults", "faulty sectors", stats.UnitDimensionless)
 	MinerRecoveries = stats.Int64("miner/recoveries", "recovery sectors", stats.UnitDimensionless)
 
-	DeadlineCost = stats.Int64("deadline/cost", "proven cost of current deadline", "epoch")
+	DeadlineCost = stats.Int64("deadline/cost", "proven cost of current deadline (epoch)", "epoch")
 
 	JobsTimeout = stats.Int64("miner/jobs", "the number of jobs that timed out", stats.UnitDimensionless)
 
 	LuckyValue = stats.Float64("lucky_value", "lucky value of miner", stats.UnitDimensionless)
 
-	MiningBlock       = stats.Float64("mining/block", "mining block(on chain) took in second", stats.UnitSeconds)
-	MiningOrphanBlock = stats.Float64("mining/orphan_block", "mining orphan block", stats.UnitSeconds)
+	BlockOnchain      = stats.Int64("block/on_chain", "counter for block on chain", stats.UnitDimensionless)
+	BlockOrphanCount  = stats.Int64("block/orphan_count", "counter for orphan block", stats.UnitDimensionless)
+	BlockOrphan       = stats.Int64("block/orphan", "mined orphan block", stats.UnitDimensionless)
+	BlockTookDuration = stats.Float64("block/took", "duration of mined a block", stats.UnitSeconds)
 )
 
 // Views
@@ -86,15 +90,25 @@ var (
 		Measure:     LuckyValue,
 		TagKeys:     []tag.Key{MinerID, LuckyValueDay},
 	}
-	MiningBlockView = &view.View{
-		Measure:     MiningBlock,
+	BlockOnchainView = &view.View{
+		Measure:     BlockOnchain,
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{MinerID},
+	}
+	BlockOrphanCountView = &view.View{
+		Measure:     BlockOrphanCount,
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{MinerID},
+	}
+	BlockOrphanView = &view.View{
+		Measure:     BlockOrphan,
 		Aggregation: view.LastValue(),
 		TagKeys:     []tag.Key{MinerID, BlockCID, BlockHeight},
 	}
-	MiningOrphanBlockView = &view.View{
-		Measure:     MiningOrphanBlock,
-		Aggregation: view.LastValue(),
-		TagKeys:     []tag.Key{MinerID, BlockCID, BlockHeight},
+	BlockTookDurationView = &view.View{
+		Measure:     BlockTookDuration,
+		Aggregation: blockTookDurationDistribution,
+		TagKeys:     []tag.Key{MinerID},
 	}
 )
 
@@ -106,8 +120,10 @@ var Views = []*view.View{
 	DeadlineCostView,
 	JobsTimeoutView,
 	LuckyValueView,
-	MiningBlockView,
-	MiningOrphanBlockView,
+	BlockOnchainView,
+	BlockOrphanCountView,
+	BlockOrphanView,
+	BlockTookDurationView,
 }
 
 // SinceInMilliseconds returns the duration of time since the provide time as a float64.

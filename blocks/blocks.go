@@ -82,6 +82,7 @@ func (b *Blocks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	b.add(block)
+	b.recordBlockTook(block)
 	log.Infow("received block", "cid", block.Cid, "miner", block.Miner)
 }
 
@@ -113,22 +114,37 @@ func (b *Blocks) filter(head abi.ChainEpoch) []Block {
 	return bb
 }
 
-func (b *Blocks) recordBlock(block Block) {
+func (b *Blocks) recordBlockOnchain(block Block) {
 	ctx, _ := tag.New(b.ctx,
 		tag.Upsert(metrics.MinerID, block.Miner.String()),
-		tag.Upsert(metrics.BlockCID, block.Cid.String()),
-		tag.Upsert(metrics.BlockHeight, block.Height.String()),
 	)
-	stats.Record(ctx, metrics.MiningBlock.M(float64(block.Took.Seconds())))
+
+	stats.Record(ctx, metrics.BlockOnchain.M(1))
 }
 
 func (b *Blocks) recordOrphan(block Block) {
 	ctx, _ := tag.New(b.ctx,
 		tag.Upsert(metrics.MinerID, block.Miner.String()),
+	)
+	stats.Record(ctx, metrics.BlockOrphanCount.M(1))
+
+	ctx, _ = tag.New(ctx,
 		tag.Upsert(metrics.BlockCID, block.Cid.String()),
 		tag.Upsert(metrics.BlockHeight, block.Height.String()),
 	)
-	stats.Record(ctx, metrics.MiningOrphanBlock.M(float64(block.Took.Seconds())))
+	stats.Record(ctx, metrics.BlockOrphan.M(1))
+
+	time.AfterFunc(time.Duration(30)*time.Second, func() {
+		stats.Record(ctx, metrics.BlockOrphan.M(0))
+	})
+}
+
+func (b *Blocks) recordBlockTook(block Block) {
+	ctx, _ := tag.New(b.ctx,
+		tag.Upsert(metrics.MinerID, block.Miner.String()),
+	)
+
+	stats.Record(ctx, metrics.BlockTookDuration.M(block.Took.Seconds()))
 }
 
 func (b *Blocks) orphanCheck() error {
@@ -144,11 +160,10 @@ func (b *Blocks) orphanCheck() error {
 		}
 
 		if ts.Contains(block.Cid) {
-			b.recordBlock(block)
+			b.recordBlockOnchain(block)
 		} else {
 			b.recordOrphan(block)
 		}
-
 		b.delete(block.Cid)
 	}
 
