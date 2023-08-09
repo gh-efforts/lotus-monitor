@@ -11,23 +11,20 @@ import (
 	"go.opencensus.io/tag"
 )
 
-func (n *FullNode) deadlineRecords() error {
+func (n *FullNode) deadlineRecords() {
 	wg := sync.WaitGroup{}
 	wg.Add(len(n.miners))
 
 	for _, maddr := range n.miners {
 		go func(maddr address.Address) {
 			defer wg.Done()
-			err := n.deadlineRecord(maddr)
-			if err != nil {
+			if err := n.deadlineRecord(maddr); err != nil {
 				log.Errorw("deadlineRecord failed", "miner", maddr, "err", err)
-			} else {
-				log.Infow("deadlineRecord success", "miner", maddr)
+				metrics.RecordError(n.ctx, "fullnode/deadlineRecord")
 			}
 		}(maddr)
 	}
 	wg.Wait()
-	return nil
 }
 
 func (n *FullNode) deadlineRecord(maddr address.Address) error {
@@ -60,18 +57,17 @@ func (n *FullNode) deadlineRecord(maddr address.Address) error {
 	for _, partition := range partitions {
 		active, err := partition.ActiveSectors.Count()
 		if err != nil {
-			//TODO: return or continue ?
 			return err
 		}
+
 		if active > 0 {
 			haveActiveSectorPartitions += 1
 		}
 	}
 
 	currentCost := int64(0)
-	openEpoch := int64(di.PeriodStart) + (int64(dlIdx) * 60)
 	if haveActiveSectorPartitions > provenPartitions {
-		currentCost = int64(di.CurrentEpoch) - openEpoch
+		currentCost = int64(di.CurrentEpoch - di.Open)
 	} else {
 		if uint64(len(partitions)) == provenPartitions {
 			currentCost = -1

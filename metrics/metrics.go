@@ -28,6 +28,7 @@ var (
 
 	BlockCID, _    = tag.NewKey("block_cid")
 	BlockHeight, _ = tag.NewKey("block_height")
+	ErrorType, _   = tag.NewKey("error_type")
 )
 
 // Measures
@@ -49,6 +50,8 @@ var (
 	BlockOrphanCount  = stats.Int64("block/orphan_count", "counter for orphan block", stats.UnitDimensionless)
 	BlockOrphan       = stats.Int64("block/orphan", "mined orphan block", stats.UnitDimensionless)
 	BlockTookDuration = stats.Float64("block/took", "duration of mined a block", stats.UnitSeconds)
+
+	SelfError = stats.Int64("self/error", "couter for monitor error", stats.UnitDimensionless)
 )
 
 // Views
@@ -110,6 +113,11 @@ var (
 		Aggregation: blockTookDurationDistribution,
 		TagKeys:     []tag.Key{MinerID},
 	}
+	SelfErrorView = &view.View{
+		Measure:     SelfError,
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{ErrorType},
+	}
 )
 
 var Views = []*view.View{
@@ -124,6 +132,7 @@ var Views = []*view.View{
 	BlockOrphanCountView,
 	BlockOrphanView,
 	BlockTookDurationView,
+	SelfErrorView,
 }
 
 // SinceInMilliseconds returns the duration of time since the provide time as a float64.
@@ -139,4 +148,12 @@ func Timer(ctx context.Context, m *stats.Float64Measure) func() time.Duration {
 		stats.Record(ctx, m.M(SinceInMilliseconds(start)))
 		return time.Since(start)
 	}
+}
+
+func RecordError(ctx context.Context, errType string) {
+	ctx, _ = tag.New(ctx,
+		tag.Upsert(ErrorType, errType),
+	)
+
+	stats.Record(ctx, SelfError.M(1))
 }

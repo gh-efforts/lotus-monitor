@@ -63,7 +63,8 @@ func (b *Blocks) run() {
 			select {
 			case <-t.C:
 				if err := b.orphanCheck(); err != nil {
-					log.Error(err)
+					log.Errorw("orphanCheck failed", "err", err)
+					metrics.RecordError(b.ctx, "blocks/orphanCheck")
 				}
 			case <-b.ctx.Done():
 				return
@@ -78,6 +79,7 @@ func (b *Blocks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		metrics.RecordError(r.Context(), "blocks/StatusInternalServerError")
 		return
 	}
 
@@ -134,7 +136,7 @@ func (b *Blocks) recordOrphan(block Block) {
 	)
 	stats.Record(ctx, metrics.BlockOrphan.M(1))
 
-	time.AfterFunc(time.Duration(30)*time.Second, func() {
+	time.AfterFunc(time.Minute, func() {
 		stats.Record(ctx, metrics.BlockOrphan.M(0))
 	})
 }

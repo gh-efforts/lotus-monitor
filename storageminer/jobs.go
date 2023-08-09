@@ -10,23 +10,20 @@ import (
 	"go.opencensus.io/tag"
 )
 
-func (m *StorageMiner) jobsRecords() error {
+func (m *StorageMiner) jobsRecords() {
 	wg := sync.WaitGroup{}
 	wg.Add(len(m.miners))
 
 	for maddr := range m.miners {
 		go func(maddr address.Address) {
 			defer wg.Done()
-			err := m.jobsRecord(maddr)
-			if err != nil {
+			if err := m.jobsRecord(maddr); err != nil {
 				log.Errorw("jobsRecord failed", "miner", maddr, "err", err)
-			} else {
-				log.Infow("jobsRecord success", "miner", maddr)
+				metrics.RecordError(m.ctx, "storageminer/jobsRecord")
 			}
 		}(maddr)
 	}
 	wg.Wait()
-	return nil
 }
 
 func (m *StorageMiner) jobsRecord(maddr address.Address) error {

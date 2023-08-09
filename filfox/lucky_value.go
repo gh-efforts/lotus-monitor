@@ -26,23 +26,20 @@ type MiningStats struct {
 	DurationPercentage    int     `json:"durationPercentage"`
 }
 
-func (f *FilFox) luckyValueRecords() error {
+func (f *FilFox) luckyValueRecords() {
 	wg := sync.WaitGroup{}
 	wg.Add(len(f.miners))
 
 	for _, maddr := range f.miners {
 		go func(maddr string) {
 			defer wg.Done()
-			err := f.luckyValueRecord(maddr)
-			if err != nil {
+			if err := f.luckyValueRecord(maddr); err != nil {
 				log.Errorw("luckyValueRecord failed", "miner", maddr, "err", err)
-			} else {
-				log.Infow("luckyValueRecord success", "miner", maddr)
+				metrics.RecordError(f.ctx, "filfox/luckyValueRecord")
 			}
 		}(maddr)
 	}
 	wg.Wait()
-	return nil
 }
 
 func (f *FilFox) luckyValueRecord(maddr string) (err error) {
@@ -64,6 +61,7 @@ func (f *FilFox) _luckyValueRecord(maddr, day string) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	var res MiningStats
 	err = json.NewDecoder(resp.Body).Decode(&res)
