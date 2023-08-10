@@ -142,6 +142,7 @@ var Views = []*view.View{
 	BlockOrphanView,
 	BlockTookDurationView,
 	SelfErrorView,
+	SelfRecordDurationView,
 }
 
 // SinceInMilliseconds returns the duration of time since the provide time as a float64.
