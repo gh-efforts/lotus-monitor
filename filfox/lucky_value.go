@@ -27,6 +27,9 @@ type MiningStats struct {
 }
 
 func (f *FilFox) luckyValueRecords() {
+	stop := metrics.Timer(f.ctx, "filfox/luckyValueRecords")
+	defer stop()
+
 	wg := sync.WaitGroup{}
 	wg.Add(len(f.miners))
 

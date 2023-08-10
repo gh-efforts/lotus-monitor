@@ -11,6 +11,9 @@ import (
 )
 
 func (m *StorageMiner) jobsRecords() {
+	stop := metrics.Timer(m.ctx, "storageminer/jobsRecords")
+	defer stop()
+
 	wg := sync.WaitGroup{}
 	wg.Add(len(m.miners))
 

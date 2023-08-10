@@ -150,6 +150,9 @@ func (b *Blocks) recordBlockTook(block Block) {
 }
 
 func (b *Blocks) orphanCheck() error {
+	stop := metrics.Timer(b.ctx, "blocks/orphanCheck")
+	defer stop()
+
 	head, err := b.api.ChainHead(b.ctx)
 	if err != nil {
 		return err
@@ -165,6 +168,7 @@ func (b *Blocks) orphanCheck() error {
 			b.recordBlockOnchain(block)
 		} else {
 			b.recordOrphan(block)
+			log.Infow("orphan block", "cid", block.Cid, "miner", block.Miner)
 		}
 		b.delete(block.Cid)
 	}

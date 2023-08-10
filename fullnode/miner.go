@@ -11,6 +11,9 @@ import (
 )
 
 func (n *FullNode) minerRecords() {
+	stop := metrics.Timer(n.ctx, "fullnode/minerRecords")
+	defer stop()
+
 	wg := sync.WaitGroup{}
 	wg.Add(len(n.miners))
 
