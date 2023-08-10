@@ -28,7 +28,6 @@ var (
 
 func main() {
 	logging.SetLogLevel("*", "INFO")
-	log.Info("starting lotus monitor...")
 
 	local := []*cli.Command{
 		runCmd,
@@ -56,6 +55,7 @@ var runCmd = &cli.Command{
 		},
 	},
 	Action: func(cctx *cli.Context) error {
+		log.Info("starting lotus monitor...")
 		conf, err := config.LoadConfig(cctx.String("config"))
 		if err != nil {
 			return err
