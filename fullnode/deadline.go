@@ -46,6 +46,7 @@ func (n *FullNode) deadlineRecord(maddr address.Address) error {
 	}
 
 	dlIdx := di.Index
+	//当前 deadline 已经提交的 partition 数量
 	provenPartitions, err := deadlines[dlIdx].PostSubmissions.Count()
 	if err != nil {
 		return err
@@ -56,29 +57,24 @@ func (n *FullNode) deadlineRecord(maddr address.Address) error {
 		return err
 	}
 
-	haveActiveSectorPartitions := uint64(0)
+	//以 LiveSectors 不等于0的 partition 数量来判断应该要提交几个 partition
+	liveSectorsPartitions := uint64(0)
 	for _, partition := range partitions {
-		active, err := partition.ActiveSectors.Count()
+		live, err := partition.LiveSectors.Count()
 		if err != nil {
 			return err
 		}
 
-		if active > 0 {
-			haveActiveSectorPartitions += 1
+		if live > 0 {
+			liveSectorsPartitions += 1
 		}
 	}
 
 	currentCost := int64(0)
-	if haveActiveSectorPartitions > provenPartitions {
+	if provenPartitions < liveSectorsPartitions {
 		currentCost = int64(di.CurrentEpoch - di.Open)
 	} else {
-		if uint64(len(partitions)) == provenPartitions {
-			currentCost = -1
-		} else if uint64(len(partitions)) > provenPartitions {
-			currentCost = -2
-		} else {
-			currentCost = -3
-		}
+		currentCost = -1
 	}
 
 	ctx, _ = tag.New(ctx,

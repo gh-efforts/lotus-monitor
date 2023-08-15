@@ -22,13 +22,11 @@ import (
 var log = logging.Logger("blocks")
 
 type Block struct {
-	Cid              cid.Cid         `json:"cid"`
-	Miner            address.Address `json:"miner"`
-	Height           abi.ChainEpoch  `json:"height"`
-	Timestamp        uint64          `json:"timestamp"`
-	BaseDeltaSeconds uint64          `json:"baseDeltaSeconds"`
-	Took             time.Duration   `json:"took"`
-	Now              time.Time       `json:"now"`
+	Cid       cid.Cid         `json:"cid"`
+	Miner     address.Address `json:"miner"`
+	Height    abi.ChainEpoch  `json:"height"`
+	Timestamp uint64          `json:"timestamp"`
+	Took      time.Duration   `json:"took"`
 }
 
 type Blocks struct {
