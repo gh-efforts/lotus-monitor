@@ -19,3 +19,11 @@ func TestConfig(t *testing.T) {
 		panic(err)
 	}
 }
+
+func TestLoadConfig(t *testing.T) {
+	conf, err := config.LoadConfig("../config.json")
+	if err != nil {
+		panic(err)
+	}
+	t.Log(conf)
+}

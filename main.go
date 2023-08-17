@@ -49,6 +49,10 @@ var runCmd = &cli.Command{
 	Name: "run",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
+			Name:  "listen",
+			Value: "0.0.0.0:6789",
+		},
+		&cli.StringFlag{
 			Name:  "config",
 			Value: "./config.json",
 			Usage: "specify config file path",
@@ -56,7 +60,9 @@ var runCmd = &cli.Command{
 	},
 	Action: func(cctx *cli.Context) error {
 		log.Info("starting lotus monitor...")
-		conf, err := config.LoadConfig(cctx.String("config"))
+
+		ctx := cliutil.ReqContext(cctx)
+		dc, err := config.NewDynamicConfig(ctx, cctx.String("config"))
 		if err != nil {
 			return err
 		}
@@ -68,7 +74,7 @@ var runCmd = &cli.Command{
 			return err
 		}
 
-		ctx, _ := tag.New(cliutil.ReqContext(cctx),
+		ctx, _ = tag.New(ctx,
 			tag.Insert(metrics.Version, BuildVersion),
 			tag.Insert(metrics.Commit, CurrentCommit),
 		)
@@ -79,25 +85,12 @@ var runCmd = &cli.Command{
 		}
 		stats.Record(ctx, metrics.Info.M(1))
 
-		n, err := fullnode.NewFullNode(ctx, conf)
-		if err != nil {
-			return err
-		}
+		fullnode.NewFullNode(ctx, dc).Run()
+		storageminer.NewStorageMiner(ctx, dc).Run()
+		filfox.NewFilFox(ctx, dc).Run()
 
-		if _, err = storageminer.NewStorageMiner(ctx, conf); err != nil {
-			return err
-		}
-
-		if _, err = filfox.NewFilFox(ctx, conf); err != nil {
-			return err
-		}
-
-		b, err := blocks.NewBlocks(ctx, n.API, conf)
-		if err != nil {
-			return err
-		}
-
-		log.Infow("monitor server", "listen", conf.Listen)
+		listen := cctx.String("listen")
+		log.Infow("monitor server", "listen", listen)
 
 		go func() {
 			<-ctx.Done()
@@ -107,9 +100,9 @@ var runCmd = &cli.Command{
 		}()
 
 		http.Handle("/metrics", exporter)
-		http.Handle("/blocks", b)
+		http.Handle("/blocks", blocks.NewBlocks(ctx, dc))
 		server := &http.Server{
-			Addr: conf.Listen,
+			Addr: listen,
 		}
 		return server.ListenAndServe()
 	},

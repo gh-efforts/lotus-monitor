@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/filecoin-project/go-address"
 	"github.com/gh-efforts/lotus-monitor/metrics"
 
 	"go.opencensus.io/stats"
@@ -30,11 +31,13 @@ func (f *FilFox) luckyValueRecords() {
 	stop := metrics.Timer(f.ctx, "filfox/luckyValueRecords")
 	defer stop()
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(f.miners))
+	miners := f.dc.MinersList()
 
-	for _, maddr := range f.miners {
-		go func(maddr string) {
+	wg := sync.WaitGroup{}
+	wg.Add(len(miners))
+
+	for _, maddr := range miners {
+		go func(maddr address.Address) {
 			defer wg.Done()
 			if err := f.luckyValueRecord(maddr); err != nil {
 				log.Errorw("luckyValueRecord failed", "miner", maddr, "err", err)
@@ -45,10 +48,10 @@ func (f *FilFox) luckyValueRecords() {
 	wg.Wait()
 }
 
-func (f *FilFox) luckyValueRecord(maddr string) (err error) {
+func (f *FilFox) luckyValueRecord(maddr address.Address) (err error) {
 	days := []string{"1d", "7d", "30d"}
 	for _, day := range days {
-		err = f._luckyValueRecord(maddr, day)
+		err = f._luckyValueRecord(maddr.String(), day)
 		if err != nil {
 			return err
 		}
@@ -58,7 +61,7 @@ func (f *FilFox) luckyValueRecord(maddr string) (err error) {
 }
 
 func (f *FilFox) _luckyValueRecord(maddr, day string) error {
-	url := fmt.Sprintf("%s/address/%s/mining-stats?duration=%s", f.URL, maddr, day)
+	url := fmt.Sprintf("%s/address/%s/mining-stats?duration=%s", f.dc.FilFoxURL, maddr, day)
 	log.Debug(url)
 	resp, err := f.Client.Get(url)
 	if err != nil {

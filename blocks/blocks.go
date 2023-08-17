@@ -9,7 +9,6 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
-	"github.com/filecoin-project/lotus/api/v0api"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/gh-efforts/lotus-monitor/config"
 	"github.com/gh-efforts/lotus-monitor/metrics"
@@ -30,33 +29,26 @@ type Block struct {
 }
 
 type Blocks struct {
-	ctx      context.Context
-	api      v0api.FullNode
-	interval time.Duration
+	ctx context.Context
+	dc  *config.DynamicConfig
 
 	lk     sync.Mutex
 	blocks map[cid.Cid]Block
 }
 
-func NewBlocks(ctx context.Context, api v0api.FullNode, conf *config.Config) (*Blocks, error) {
-	interval, err := time.ParseDuration(conf.RecordInterval.Blocks)
-	if err != nil {
-		return nil, err
-	}
+func NewBlocks(ctx context.Context, dc *config.DynamicConfig) *Blocks {
 	b := &Blocks{
-		ctx:      ctx,
-		api:      api,
-		interval: interval,
-		blocks:   make(map[cid.Cid]Block),
+		ctx:    ctx,
+		dc:     dc,
+		blocks: make(map[cid.Cid]Block),
 	}
 	b.run()
-	log.Infow("NewBlocks", "interval", interval.String())
-	return b, nil
+	return b
 }
 
 func (b *Blocks) run() {
 	go func() {
-		t := time.NewTicker(b.interval)
+		t := time.NewTicker(time.Duration(b.dc.RecordInterval.Blocks))
 		for {
 			select {
 			case <-t.C:
@@ -151,13 +143,15 @@ func (b *Blocks) orphanCheck() error {
 	stop := metrics.Timer(b.ctx, "blocks/orphanCheck")
 	defer stop()
 
-	head, err := b.api.ChainHead(b.ctx)
+	api := b.dc.LotusApi
+
+	head, err := api.ChainHead(b.ctx)
 	if err != nil {
 		return err
 	}
 
-	for _, block := range b.filter(head.Height()) {
-		ts, err := b.api.ChainGetTipSetByHeight(b.ctx, block.Height, types.EmptyTSK)
+	for _, block := range b.filter(head.Height() - abi.ChainEpoch(b.dc.OrphanCheckHeight)) {
+		ts, err := api.ChainGetTipSetByHeight(b.ctx, block.Height, types.EmptyTSK)
 		if err != nil {
 			return err
 		}

@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/filecoin-project/go-address"
+	"github.com/gh-efforts/lotus-monitor/config"
 	"github.com/gh-efforts/lotus-monitor/metrics"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -14,27 +14,29 @@ func (m *StorageMiner) jobsRecords() {
 	stop := metrics.Timer(m.ctx, "storageminer/jobsRecords")
 	defer stop()
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(m.miners))
+	miners := m.dc.MinersInfo()
 
-	for maddr := range m.miners {
-		go func(maddr address.Address) {
+	wg := sync.WaitGroup{}
+	wg.Add(len(miners))
+
+	for _, mi := range miners {
+		go func(mi config.MinerInfo) {
 			defer wg.Done()
-			if err := m.jobsRecord(maddr); err != nil {
-				log.Errorw("jobsRecord failed", "miner", maddr, "err", err)
+			if err := m.jobsRecord(mi); err != nil {
+				log.Errorw("jobsRecord failed", "miner", mi.Address, "err", err)
 				metrics.RecordError(m.ctx, "storageminer/jobsRecord")
 			}
-		}(maddr)
+		}(mi)
 	}
 	wg.Wait()
 }
 
-func (m *StorageMiner) jobsRecord(maddr address.Address) error {
+func (m *StorageMiner) jobsRecord(mi config.MinerInfo) error {
 	ctx, _ := tag.New(m.ctx,
-		tag.Upsert(metrics.MinerID, maddr.String()),
+		tag.Upsert(metrics.MinerID, mi.Address.String()),
 	)
-	api := m.miners[maddr].api
-	size := m.miners[maddr].size
+	api := mi.Api
+	size := mi.Size
 
 	jobss, err := api.WorkerJobs(ctx)
 	if err != nil {
@@ -42,16 +44,16 @@ func (m *StorageMiner) jobsRecord(maddr address.Address) error {
 	}
 
 	result := map[string]int64{}
-	for _, task := range m.tasks {
-		result[task] = 0
+	for task := range m.dc.Running[size] {
+		result[task.Short()] = 0
 	}
 	for _, jobs := range jobss {
 		for _, job := range jobs {
 			if job.RunWait != 0 {
 				continue
 			}
-			td, ok := m.running[size][job.Task.Short()]
-			if ok && time.Since(job.Start) > td {
+			td, ok := m.dc.Running[size][job.Task]
+			if ok && time.Since(job.Start) > time.Duration(td) {
 				result[job.Task.Short()] += 1
 			}
 		}
