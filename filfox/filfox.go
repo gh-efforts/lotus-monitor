@@ -9,42 +9,27 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 )
 
-var log = logging.Logger("filfox")
+var log = logging.Logger("monitor/filfox")
 
 type FilFox struct {
-	ctx      context.Context
-	URL      string
-	Client   http.Client
-	miners   []string
-	interval time.Duration
+	ctx    context.Context
+	dc     *config.DynamicConfig
+	Client http.Client
 }
 
-func NewFilFox(ctx context.Context, conf *config.Config) (*FilFox, error) {
-	interval, err := time.ParseDuration(conf.RecordInterval.FilFox)
-	if err != nil {
-		return nil, err
-	}
-
-	miners := []string{}
-	for m := range conf.Miners {
-		miners = append(miners, m)
-	}
+func NewFilFox(ctx context.Context, dc *config.DynamicConfig) *FilFox {
 	f := &FilFox{
-		ctx:      ctx,
-		URL:      conf.FilFoxURL,
-		Client:   http.Client{},
-		miners:   miners,
-		interval: interval,
+		ctx:    ctx,
+		dc:     dc,
+		Client: http.Client{},
 	}
-
-	f.run()
-	log.Infow("NewFilFox", "interval", interval.String())
-	return f, nil
+	return f
 }
 
-func (f *FilFox) run() {
+func (f *FilFox) Run() {
+	//f.luckyValueRecords()
 	go func() {
-		t := time.NewTicker(f.interval)
+		t := time.NewTicker(time.Duration(f.dc.RecordInterval.FilFox))
 		for {
 			select {
 			case <-t.C:

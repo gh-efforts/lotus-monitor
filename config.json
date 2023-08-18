@@ -1,38 +1,48 @@
 {
-	"listen": "0.0.0.0:6789",
 	"lotus": {
 		"addr": "10.122.1.29:1234",
 		"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIl19.l04qKWmgyDRqeT3kjMfxxhQpKwLmYk8eeDIW-NcaX_c"
 	},
 	"miners": {
+		"t01037": {
+			"addr": "",
+			"token": ""
+		},
 		"t017387": {
 			"addr": "10.122.1.29:2345",
 			"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.tlJ8d4RIudknLHrKDSjyKzfbh8hGp9Ez1FZszblQLAI"
+		},
+		"t028064": {
+			"addr": "10.122.1.29:2346",
+			"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.7ZoJAcyY9ictWUdWsiV5AwmSTPHCczkT8Y6mTiN3Azw"
+		},
+		"t03751": {
+			"addr": "",
+			"token": ""
 		}
 	},
 	"running": {
-		"AP": [
-			"1m",
-			"2m"
-		],
-		"GET": [
-			"1m",
-			"2m"
-		],
-		"PC1": [
-			"3h",
-			"5h"
-		],
-		"PC2": [
-			"5m",
-			"10m"
-		]
+		"34359738368": {
+			"seal/v0/addpiece": "5m0s",
+			"seal/v0/commit/1": "1m0s",
+			"seal/v0/fetch": "5m0s",
+			"seal/v0/precommit/1": "5h0m0s",
+			"seal/v0/precommit/2": "15m0s"
+		},
+		"68719476736": {
+			"seal/v0/addpiece": "10m0s",
+			"seal/v0/commit/1": "2m0s",
+			"seal/v0/fetch": "10m0s",
+			"seal/v0/precommit/1": "10h0m0s",
+			"seal/v0/precommit/2": "30m0s"
+		}
 	},
 	"recordInterval": {
 		"lotus": "30s",
-		"miner": "30s",
-		"filFox": "3m",
-		"blocks": "1m"
+		"miner": "5m0s",
+		"filFox": "10m0s",
+		"blocks": "1m0s"
 	},
-	"filFoxURL": "https://calibration.filfox.info/api/v1"
+	"filFoxURL": "https://calibration.filfox.info/api/v1",
+	"orphanCheckHeight": 3
 }

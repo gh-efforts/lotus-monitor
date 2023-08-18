@@ -15,15 +15,19 @@ func (n *FullNode) deadlineRecords() {
 	stop := metrics.Timer(n.ctx, "fullnode/deadlineRecords")
 	defer stop()
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(n.miners))
+	miners := n.dc.MinersList()
 
-	for _, maddr := range n.miners {
+	wg := sync.WaitGroup{}
+	wg.Add(len(miners))
+
+	for _, maddr := range miners {
 		go func(maddr address.Address) {
 			defer wg.Done()
 			if err := n.deadlineRecord(maddr); err != nil {
 				log.Errorw("deadlineRecord failed", "miner", maddr, "err", err)
 				metrics.RecordError(n.ctx, "fullnode/deadlineRecord")
+			} else {
+				log.Debugw("deadlineRecord success", "miner", maddr)
 			}
 		}(maddr)
 	}
@@ -34,13 +38,14 @@ func (n *FullNode) deadlineRecord(maddr address.Address) error {
 	ctx, _ := tag.New(n.ctx,
 		tag.Upsert(metrics.MinerID, maddr.String()),
 	)
+	api := n.dc.LotusApi
 
-	di, err := n.API.StateMinerProvingDeadline(ctx, maddr, types.EmptyTSK)
+	di, err := api.StateMinerProvingDeadline(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
 
-	deadlines, err := n.API.StateMinerDeadlines(ctx, maddr, types.EmptyTSK)
+	deadlines, err := api.StateMinerDeadlines(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
@@ -52,7 +57,7 @@ func (n *FullNode) deadlineRecord(maddr address.Address) error {
 		return err
 	}
 
-	partitions, err := n.API.StateMinerPartitions(ctx, maddr, uint64(dlIdx), types.EmptyTSK)
+	partitions, err := api.StateMinerPartitions(ctx, maddr, uint64(dlIdx), types.EmptyTSK)
 	if err != nil {
 		return err
 	}

@@ -14,15 +14,20 @@ func (n *FullNode) minerRecords() {
 	stop := metrics.Timer(n.ctx, "fullnode/minerRecords")
 	defer stop()
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(n.miners))
+	miners := n.dc.MinersList()
+	log.Debug(miners)
 
-	for _, maddr := range n.miners {
+	wg := sync.WaitGroup{}
+	wg.Add(len(miners))
+
+	for _, maddr := range miners {
 		go func(maddr address.Address) {
 			defer wg.Done()
 			if err := n.minerRecord(maddr); err != nil {
 				log.Errorw("minerRecord failed", "miner", maddr, "err", err)
 				metrics.RecordError(n.ctx, "fullnode/minerRecord")
+			} else {
+				log.Debugw("minerRecord success", "miner", maddr)
 			}
 		}(maddr)
 	}
@@ -33,8 +38,9 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 	ctx, _ := tag.New(n.ctx,
 		tag.Upsert(metrics.MinerID, maddr.String()),
 	)
+	api := n.dc.LotusApi
 
-	faults, err := n.API.StateMinerFaults(ctx, maddr, types.EmptyTSK)
+	faults, err := api.StateMinerFaults(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
@@ -44,7 +50,7 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 	}
 	stats.Record(ctx, metrics.MinerFaults.M(int64(f)))
 
-	recoveries, err := n.API.StateMinerRecoveries(ctx, maddr, types.EmptyTSK)
+	recoveries, err := api.StateMinerRecoveries(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
@@ -54,7 +60,7 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 	}
 	stats.Record(ctx, metrics.MinerRecoveries.M(int64(r)))
 
-	mi, err := n.API.StateMinerInfo(ctx, maddr, types.EmptyTSK)
+	mi, err := api.StateMinerInfo(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
@@ -71,7 +77,7 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 			tag.Upsert(metrics.ActorAddress, k.String()),
 			tag.Upsert(metrics.AddressType, v),
 		)
-		actor, err := n.API.StateGetActor(ctx, k, types.EmptyTSK)
+		actor, err := api.StateGetActor(ctx, k, types.EmptyTSK)
 		if err != nil {
 			return err
 		}
