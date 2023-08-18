@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -72,8 +70,9 @@ type MinerInfo struct {
 type DynamicConfig struct {
 	ctx context.Context
 
-	cfg  *Config
-	path string
+	cfg           *Config
+	path          string
+	reloadRequest chan struct{}
 
 	LotusApi v0api.FullNode
 	closer   jsonrpc.ClientCloser
@@ -103,7 +102,7 @@ func NewDynamicConfig(ctx context.Context, path string) (*DynamicConfig, error) 
 	if err != nil {
 		return nil, err
 	}
-	log.Infow("connected lotus", "addr", cfg.Lotus.Addr, "head", head.Height())
+	log.Infow("connected to lotus", "addr", cfg.Lotus.Addr, "head", head.Height())
 
 	miners := map[address.Address]MinerInfo{}
 	for m, info := range cfg.Miners {
@@ -116,26 +115,34 @@ func NewDynamicConfig(ctx context.Context, path string) (*DynamicConfig, error) 
 	}
 
 	dc := &DynamicConfig{
-		ctx:      ctx,
-		cfg:      cfg,
-		path:     path,
-		LotusApi: api,
-		closer:   closer,
-		miners:   miners,
+		ctx:               ctx,
+		cfg:               cfg,
+		path:              path,
+		reloadRequest:     make(chan struct{}, 10),
+		LotusApi:          api,
+		closer:            closer,
+		Running:           cfg.Running,
+		RecordInterval:    cfg.RecordInterval,
+		FilFoxURL:         cfg.FilFoxURL,
+		OrphanCheckHeight: cfg.OrphanCheckHeight,
+		miners:            miners,
 	}
 	dc.watch()
 
 	return dc, nil
 }
 
+func (dc *DynamicConfig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Info("received reload config request")
+	dc.reloadRequest <- struct{}{}
+}
+
 func (dc *DynamicConfig) watch() {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGHUP)
 	go func() {
 		for {
 			select {
-			case <-sigs:
-				log.Info("recieve SIGHUP reloading config...")
+			case <-dc.reloadRequest:
+				log.Info("recieved chan reloading config...")
 				if err := dc.reload(); err != nil {
 					log.Errorf("reload config: %s", err)
 				}
@@ -208,7 +215,10 @@ func (dc *DynamicConfig) updateMiners(update []MinerInfo, insert []MinerInfo, re
 	defer dc.lk.Unlock()
 
 	for _, u := range update {
-		dc.miners[u.Address].closer()
+		if c := dc.miners[u.Address].closer; c != nil {
+			c()
+			log.Infow("closed old miner api", "miner", u.Address)
+		}
 		dc.miners[u.Address] = u
 	}
 
@@ -216,9 +226,12 @@ func (dc *DynamicConfig) updateMiners(update []MinerInfo, insert []MinerInfo, re
 		dc.miners[i.Address] = i
 	}
 
-	for _, d := range remove {
-		dc.miners[d].closer()
-		delete(dc.miners, d)
+	for _, r := range remove {
+		if c := dc.miners[r].closer; c != nil {
+			c()
+			log.Infow("closed removed miner api", "miner", r)
+		}
+		delete(dc.miners, r)
 	}
 }
 
@@ -226,7 +239,9 @@ func (dc *DynamicConfig) Close() {
 	dc.closer()
 
 	for _, m := range dc.miners {
-		m.closer()
+		if m.closer != nil {
+			m.closer()
+		}
 	}
 }
 
@@ -329,7 +344,7 @@ func toMinerInfo(ctx context.Context, m string, info APIInfo) (MinerInfo, error)
 
 	if info.Addr == "" || info.Token == "" {
 		log.Warnf("miner: %s api info empty", maddr)
-		return MinerInfo{Api: nil}, nil
+		return MinerInfo{Api: nil, Address: maddr}, nil
 	}
 
 	addr := "ws://" + info.Addr + "/rpc/v0"
@@ -350,6 +365,7 @@ func toMinerInfo(ctx context.Context, m string, info APIInfo) (MinerInfo, error)
 	if err != nil {
 		return MinerInfo{}, err
 	}
+	log.Infow("connected to miner", "miner", maddr, "addr", info.Addr)
 
 	return MinerInfo{Api: api, closer: closer, Address: maddr, Size: size}, nil
 }

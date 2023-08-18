@@ -101,6 +101,7 @@ var runCmd = &cli.Command{
 
 		http.Handle("/metrics", exporter)
 		http.Handle("/blocks", blocks.NewBlocks(ctx, dc))
+		http.Handle("/reload", dc)
 		server := &http.Server{
 			Addr: listen,
 		}
