@@ -18,7 +18,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 )
 
-var log = logging.Logger("config")
+var log = logging.Logger("monitor/config")
 
 type Duration time.Duration
 
@@ -295,8 +295,14 @@ func DefaultConfig() *Config {
 		Addr:  "10.122.1.29:2345",
 		Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.tlJ8d4RIudknLHrKDSjyKzfbh8hGp9Ez1FZszblQLAI",
 	}
+	miner64 := APIInfo{
+		Addr:  "10.122.1.29:2346",
+		Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.7ZoJAcyY9ictWUdWsiV5AwmSTPHCczkT8Y6mTiN3Azw",
+	}
+
 	miners := make(map[string]APIInfo)
 	miners["t017387"] = miner
+	miners["t028064"] = miner64
 	miners["t01037"] = APIInfo{}
 	miners["t03751"] = APIInfo{}
 

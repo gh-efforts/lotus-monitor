@@ -15,6 +15,7 @@ func (m *StorageMiner) jobsRecords() {
 	defer stop()
 
 	miners := m.dc.MinersInfo()
+	log.Debug(miners)
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(miners))
@@ -25,6 +26,8 @@ func (m *StorageMiner) jobsRecords() {
 			if err := m.jobsRecord(mi); err != nil {
 				log.Errorw("jobsRecord failed", "miner", mi.Address, "err", err)
 				metrics.RecordError(m.ctx, "storageminer/jobsRecord")
+			} else {
+				log.Debugw("jobsRecord success", "miner", mi.Address)
 			}
 		}(mi)
 	}

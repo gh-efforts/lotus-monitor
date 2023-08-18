@@ -8,7 +8,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 )
 
-var log = logging.Logger("fullnode")
+var log = logging.Logger("monitor/fullnode")
 
 type FullNode struct {
 	ctx context.Context
@@ -23,6 +23,8 @@ func NewFullNode(ctx context.Context, dc *config.DynamicConfig) *FullNode {
 }
 
 func (n *FullNode) Run() {
+	//n.minerRecords()
+	//n.deadlineRecords()
 	go func() {
 		t := time.NewTicker(time.Duration(n.dc.RecordInterval.Lotus))
 		for {

@@ -9,7 +9,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 )
 
-var log = logging.Logger("filfox")
+var log = logging.Logger("monitor/filfox")
 
 type FilFox struct {
 	ctx    context.Context
@@ -27,6 +27,7 @@ func NewFilFox(ctx context.Context, dc *config.DynamicConfig) *FilFox {
 }
 
 func (f *FilFox) Run() {
+	//f.luckyValueRecords()
 	go func() {
 		t := time.NewTicker(time.Duration(f.dc.RecordInterval.FilFox))
 		for {

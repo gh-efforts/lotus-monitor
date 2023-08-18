@@ -15,6 +15,7 @@ func (n *FullNode) minerRecords() {
 	defer stop()
 
 	miners := n.dc.MinersList()
+	log.Debug(miners)
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(miners))
@@ -25,6 +26,8 @@ func (n *FullNode) minerRecords() {
 			if err := n.minerRecord(maddr); err != nil {
 				log.Errorw("minerRecord failed", "miner", maddr, "err", err)
 				metrics.RecordError(n.ctx, "fullnode/minerRecord")
+			} else {
+				log.Debugw("minerRecord success", "miner", maddr)
 			}
 		}(maddr)
 	}

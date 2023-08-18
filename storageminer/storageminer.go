@@ -8,7 +8,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 )
 
-var log = logging.Logger("storageminer")
+var log = logging.Logger("monitor/storageminer")
 
 type StorageMiner struct {
 	ctx context.Context
@@ -25,6 +25,7 @@ func NewStorageMiner(ctx context.Context, dc *config.DynamicConfig) *StorageMine
 }
 
 func (m *StorageMiner) Run() {
+	//m.jobsRecords()
 	go func() {
 		t := time.NewTicker(time.Duration(m.dc.RecordInterval.Miner))
 		for {

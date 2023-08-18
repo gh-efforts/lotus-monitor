@@ -18,7 +18,7 @@ import (
 	"go.opencensus.io/tag"
 )
 
-var log = logging.Logger("blocks")
+var log = logging.Logger("monitor/blocks")
 
 type Block struct {
 	Cid       cid.Cid         `json:"cid"`
@@ -55,6 +55,8 @@ func (b *Blocks) run() {
 				if err := b.orphanCheck(); err != nil {
 					log.Errorw("orphanCheck failed", "err", err)
 					metrics.RecordError(b.ctx, "blocks/orphanCheck")
+				} else {
+					log.Debug("orphanCheck success")
 				}
 			case <-b.ctx.Done():
 				return

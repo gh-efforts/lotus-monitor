@@ -26,6 +26,8 @@ func (n *FullNode) deadlineRecords() {
 			if err := n.deadlineRecord(maddr); err != nil {
 				log.Errorw("deadlineRecord failed", "miner", maddr, "err", err)
 				metrics.RecordError(n.ctx, "fullnode/deadlineRecord")
+			} else {
+				log.Debugw("deadlineRecord success", "miner", maddr)
 			}
 		}(maddr)
 	}

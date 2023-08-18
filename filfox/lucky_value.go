@@ -42,6 +42,8 @@ func (f *FilFox) luckyValueRecords() {
 			if err := f.luckyValueRecord(maddr); err != nil {
 				log.Errorw("luckyValueRecord failed", "miner", maddr, "err", err)
 				metrics.RecordError(f.ctx, "filfox/luckyValueRecord")
+			} else {
+				log.Debugw("luckyValueRecord success", "miner", maddr)
 			}
 		}(maddr)
 	}

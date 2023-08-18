@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	log = logging.Logger("main")
+	log = logging.Logger("monitor/main")
 )
 
 func main() {
@@ -57,8 +57,16 @@ var runCmd = &cli.Command{
 			Value: "./config.json",
 			Usage: "specify config file path",
 		},
+		&cli.BoolFlag{
+			Name:  "debug",
+			Value: false,
+		},
 	},
 	Action: func(cctx *cli.Context) error {
+		if cctx.Bool("debug") {
+			logging.SetLogLevelRegex("monitor/*", "DEBUG")
+		}
+
 		log.Info("starting lotus monitor...")
 
 		ctx := cliutil.ReqContext(cctx)
