@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/gh-efforts/lotus-monitor/config"
@@ -71,6 +72,19 @@ func (b *Blocks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		metrics.RecordError(r.Context(), "blocks/StatusInternalServerError")
+		return
+	}
+
+	if _, err := cid.Decode(block.Cid); err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		metrics.RecordError(r.Context(), "blocks/StatusBadRequest")
+		return
+	}
+	if _, err := address.NewFromString(block.Miner); err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		metrics.RecordError(r.Context(), "blocks/StatusBadRequest")
 		return
 	}
 
