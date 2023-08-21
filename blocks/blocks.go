@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/gh-efforts/lotus-monitor/config"
@@ -21,11 +20,11 @@ import (
 var log = logging.Logger("monitor/blocks")
 
 type Block struct {
-	Cid       cid.Cid         `json:"cid"`
-	Miner     address.Address `json:"miner"`
-	Height    abi.ChainEpoch  `json:"height"`
-	Timestamp uint64          `json:"timestamp"`
-	Took      time.Duration   `json:"took"`
+	Cid       string         `json:"cid"`
+	Miner     string         `json:"miner"`
+	Height    abi.ChainEpoch `json:"height"`
+	Timestamp uint64         `json:"timestamp"`
+	Took      time.Duration  `json:"took"`
 }
 
 type Blocks struct {
@@ -33,14 +32,14 @@ type Blocks struct {
 	dc  *config.DynamicConfig
 
 	lk     sync.Mutex
-	blocks map[cid.Cid]Block
+	blocks map[string]Block
 }
 
 func NewBlocks(ctx context.Context, dc *config.DynamicConfig) *Blocks {
 	b := &Blocks{
 		ctx:    ctx,
 		dc:     dc,
-		blocks: make(map[cid.Cid]Block),
+		blocks: make(map[string]Block),
 	}
 	b.run()
 	return b
@@ -87,7 +86,7 @@ func (b *Blocks) add(block Block) {
 	b.blocks[block.Cid] = block
 }
 
-func (b *Blocks) delete(blockCid cid.Cid) {
+func (b *Blocks) delete(blockCid string) {
 	b.lk.Lock()
 	defer b.lk.Unlock()
 
@@ -110,7 +109,7 @@ func (b *Blocks) filter(head abi.ChainEpoch) []Block {
 
 func (b *Blocks) recordBlockOnchain(block Block) {
 	ctx, _ := tag.New(b.ctx,
-		tag.Upsert(metrics.MinerID, block.Miner.String()),
+		tag.Upsert(metrics.MinerID, block.Miner),
 	)
 
 	stats.Record(ctx, metrics.BlockOnchain.M(1))
@@ -118,12 +117,12 @@ func (b *Blocks) recordBlockOnchain(block Block) {
 
 func (b *Blocks) recordOrphan(block Block) {
 	ctx, _ := tag.New(b.ctx,
-		tag.Upsert(metrics.MinerID, block.Miner.String()),
+		tag.Upsert(metrics.MinerID, block.Miner),
 	)
 	stats.Record(ctx, metrics.BlockOrphanCount.M(1))
 
 	ctx, _ = tag.New(ctx,
-		tag.Upsert(metrics.BlockCID, block.Cid.String()),
+		tag.Upsert(metrics.BlockCID, block.Cid),
 		tag.Upsert(metrics.BlockHeight, block.Height.String()),
 	)
 	stats.Record(ctx, metrics.BlockOrphan.M(1))
@@ -135,7 +134,7 @@ func (b *Blocks) recordOrphan(block Block) {
 
 func (b *Blocks) recordBlockTook(block Block) {
 	ctx, _ := tag.New(b.ctx,
-		tag.Upsert(metrics.MinerID, block.Miner.String()),
+		tag.Upsert(metrics.MinerID, block.Miner),
 	)
 
 	stats.Record(ctx, metrics.BlockTookDuration.M(block.Took.Seconds()))
@@ -157,8 +156,11 @@ func (b *Blocks) orphanCheck() error {
 		if err != nil {
 			return err
 		}
-
-		if ts.Contains(block.Cid) {
+		c, err := cid.Decode(block.Cid)
+		if err != nil {
+			return err
+		}
+		if ts.Contains(c) {
 			b.recordBlockOnchain(block)
 		} else {
 			b.recordOrphan(block)
