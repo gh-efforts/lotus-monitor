@@ -24,7 +24,7 @@ type Block struct {
 	Miner     string         `json:"miner"`
 	Height    abi.ChainEpoch `json:"height"`
 	Timestamp uint64         `json:"timestamp"`
-	Took      time.Duration  `json:"took"`
+	Took      float64        `json:"took"`
 }
 
 type Blocks struct {
@@ -137,7 +137,7 @@ func (b *Blocks) recordBlockTook(block Block) {
 		tag.Upsert(metrics.MinerID, block.Miner),
 	)
 
-	stats.Record(ctx, metrics.BlockTookDuration.M(block.Took.Seconds()))
+	stats.Record(ctx, metrics.BlockTookDuration.M(block.Took))
 }
 
 func (b *Blocks) orphanCheck() error {
