@@ -40,7 +40,7 @@
 	"recordInterval": {
 		"lotus": "30s",
 		"miner": "5m0s",
-		"filFox": "10m0s",
+		"filFox": "1h0m0s",
 		"blocks": "1m0s"
 	},
 	"filFoxURL": "https://calibration.filfox.info/api/v1",

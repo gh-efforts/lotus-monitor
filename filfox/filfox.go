@@ -27,13 +27,13 @@ func NewFilFox(ctx context.Context, dc *config.DynamicConfig) *FilFox {
 }
 
 func (f *FilFox) Run() {
-	//f.luckyValueRecords()
+	f.luckyValueRecords()
 	go func() {
 		t := time.NewTicker(time.Duration(f.dc.RecordInterval.FilFox))
 		for {
 			select {
 			case <-t.C:
-				f.luckyValueRecords()
+				go f.luckyValueRecords()
 			case <-f.ctx.Done():
 				return
 			}

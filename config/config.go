@@ -328,7 +328,7 @@ func DefaultConfig() *Config {
 	interval := RecordInterval{
 		Lotus:  Duration(time.Second * 30),
 		Miner:  Duration(time.Minute * 5),
-		FilFox: Duration(time.Minute * 10),
+		FilFox: Duration(time.Hour),
 		Blocks: Duration(time.Minute),
 	}
 

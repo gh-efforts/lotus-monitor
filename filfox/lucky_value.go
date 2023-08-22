@@ -3,15 +3,21 @@ package filfox
 import (
 	"encoding/json"
 	"fmt"
-	"sync"
+	"net/http"
+	"strconv"
+	"time"
 
-	"github.com/filecoin-project/go-address"
 	"github.com/gh-efforts/lotus-monitor/metrics"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
 
+type rateLimit struct {
+	limit     int
+	remaining int
+	reset     int
+}
 type MiningStats struct {
 	RawBytePowerGrowth    string  `json:"rawBytePowerGrowth"`
 	QualityAdjPowerGrowth string  `json:"qualityAdjPowerGrowth"`
@@ -33,48 +39,38 @@ func (f *FilFox) luckyValueRecords() {
 
 	miners := f.dc.MinersList()
 
-	wg := sync.WaitGroup{}
-	wg.Add(len(miners))
-
 	for _, maddr := range miners {
-		go func(maddr address.Address) {
-			defer wg.Done()
-			if err := f.luckyValueRecord(maddr); err != nil {
+		days := []string{"1d", "7d", "30d"}
+		for _, day := range days {
+			rl, err := f.luckyValueRecord(maddr.String(), day)
+			if err != nil {
 				log.Errorw("luckyValueRecord failed", "miner", maddr, "err", err)
 				metrics.RecordError(f.ctx, "filfox/luckyValueRecord")
-			} else {
-				log.Debugw("luckyValueRecord success", "miner", maddr)
+				//rate limit sleep
+				//time.Sleep(time.Minute)
+				continue
 			}
-		}(maddr)
-	}
-	wg.Wait()
-}
-
-func (f *FilFox) luckyValueRecord(maddr address.Address) (err error) {
-	days := []string{"1d", "7d", "30d"}
-	for _, day := range days {
-		err = f._luckyValueRecord(maddr.String(), day)
-		if err != nil {
-			return err
+			if rl.remaining < 3 {
+				log.Infow("rate limit", "limit", rl.limit, "remaining", rl.remaining, "reset", rl.reset)
+				time.Sleep(time.Duration(rl.reset) * time.Second)
+			}
 		}
 	}
-
-	return nil
 }
 
-func (f *FilFox) _luckyValueRecord(maddr, day string) error {
+func (f *FilFox) luckyValueRecord(maddr, day string) (rateLimit, error) {
 	url := fmt.Sprintf("%s/address/%s/mining-stats?duration=%s", f.dc.FilFoxURL, maddr, day)
 	log.Debug(url)
 	resp, err := f.Client.Get(url)
 	if err != nil {
-		return err
+		return rateLimit{}, err
 	}
 	defer resp.Body.Close()
 
 	var res MiningStats
 	err = json.NewDecoder(resp.Body).Decode(&res)
 	if err != nil {
-		return err
+		return rateLimit{}, err
 	}
 
 	ctx, _ := tag.New(f.ctx,
@@ -83,5 +79,29 @@ func (f *FilFox) _luckyValueRecord(maddr, day string) error {
 	)
 	stats.Record(ctx, metrics.LuckyValue.M(res.LuckyValue))
 
-	return nil
+	return parseRateLimit(resp.Header)
+}
+
+func parseRateLimit(header http.Header) (rateLimit, error) {
+	log.Debug(header)
+	limit, err := strconv.Atoi(header.Get("x-ratelimit-limit"))
+	if err != nil {
+		return rateLimit{}, err
+	}
+	remaining, err := strconv.Atoi(header.Get("x-ratelimit-remaining"))
+	if err != nil {
+		return rateLimit{}, err
+	}
+	reset, err := strconv.Atoi(header.Get("x-ratelimit-reset"))
+	if err != nil {
+		return rateLimit{}, err
+	}
+
+	r := rateLimit{
+		limit:     limit,
+		remaining: remaining,
+		reset:     reset,
+	}
+	log.Debug(r)
+	return r, nil
 }
