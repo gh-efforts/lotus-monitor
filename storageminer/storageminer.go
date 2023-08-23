@@ -25,8 +25,8 @@ func NewStorageMiner(ctx context.Context, dc *config.DynamicConfig) *StorageMine
 }
 
 func (m *StorageMiner) Run() {
-	//m.jobsRecords()
 	go func() {
+		m.jobsRecords()
 		t := time.NewTicker(time.Duration(m.dc.RecordInterval.Miner))
 		for {
 			select {

@@ -23,9 +23,9 @@ func NewFullNode(ctx context.Context, dc *config.DynamicConfig) *FullNode {
 }
 
 func (n *FullNode) Run() {
-	//n.minerRecords()
-	//n.deadlineRecords()
 	go func() {
+		//n.minerRecords()
+		//n.deadlineRecords()
 		t := time.NewTicker(time.Duration(n.dc.RecordInterval.Lotus))
 		for {
 			select {

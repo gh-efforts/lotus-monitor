@@ -27,8 +27,8 @@ func NewFilFox(ctx context.Context, dc *config.DynamicConfig) *FilFox {
 }
 
 func (f *FilFox) Run() {
-	f.luckyValueRecords()
 	go func() {
+		f.luckyValueRecords()
 		t := time.NewTicker(time.Duration(f.dc.RecordInterval.FilFox))
 		for {
 			select {
