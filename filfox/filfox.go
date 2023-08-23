@@ -33,7 +33,7 @@ func (f *FilFox) Run() {
 		for {
 			select {
 			case <-t.C:
-				go f.luckyValueRecords()
+				f.luckyValueRecords()
 			case <-f.ctx.Done():
 				return
 			}

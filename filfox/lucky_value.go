@@ -2,6 +2,7 @@ package filfox
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -12,6 +13,8 @@ import (
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
+
+var ErrTooManyRequests = errors.New("429 Too Many Requests")
 
 type rateLimit struct {
 	limit     int
@@ -46,13 +49,15 @@ func (f *FilFox) luckyValueRecords() {
 			if err != nil {
 				log.Errorw("luckyValueRecord failed", "miner", maddr, "err", err)
 				metrics.RecordError(f.ctx, "filfox/luckyValueRecord")
-				//rate limit sleep
-				//time.Sleep(time.Minute)
+				if err == ErrTooManyRequests {
+					log.Warn("429 Too Many Requests, sleep one minute....")
+					time.Sleep(time.Minute)
+				}
 				continue
 			}
 			if rl.remaining < 3 {
-				log.Infow("rate limit", "limit", rl.limit, "remaining", rl.remaining, "reset", rl.reset)
-				time.Sleep(time.Duration(rl.reset) * time.Second)
+				log.Warnw("rate limit", "limit", rl.limit, "remaining", rl.remaining, "reset", rl.reset)
+				time.Sleep(time.Duration(rl.reset+1) * time.Second)
 			}
 		}
 	}
@@ -66,6 +71,13 @@ func (f *FilFox) luckyValueRecord(maddr, day string) (rateLimit, error) {
 		return rateLimit{}, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusTooManyRequests {
+			return rateLimit{}, ErrTooManyRequests
+		}
+		return rateLimit{}, errors.New(resp.Status)
+	}
 
 	var res MiningStats
 	err = json.NewDecoder(resp.Body).Decode(&res)
