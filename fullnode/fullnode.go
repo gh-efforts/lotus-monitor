@@ -24,14 +24,14 @@ func NewFullNode(ctx context.Context, dc *config.DynamicConfig) *FullNode {
 
 func (n *FullNode) Run() {
 	go func() {
-		//n.minerRecords()
 		//n.deadlineRecords()
+		//n.minerRecords()
 		t := time.NewTicker(time.Duration(n.dc.RecordInterval.Lotus))
 		for {
 			select {
 			case <-t.C:
-				n.minerRecords()
 				n.deadlineRecords()
+				n.minerRecords()
 			case <-n.ctx.Done():
 				return
 			}

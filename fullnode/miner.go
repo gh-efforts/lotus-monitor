@@ -60,6 +60,13 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 	}
 	stats.Record(ctx, metrics.MinerRecoveries.M(int64(r)))
 
+	mp, err := api.StateMinerPower(ctx, maddr, types.EmptyTSK)
+	if err != nil {
+		return err
+	}
+	stats.Record(ctx, metrics.MinerRawBytePower.M(mp.MinerPower.RawBytePower.Int64()))
+	stats.Record(ctx, metrics.MinerRawBytePower.M(mp.MinerPower.QualityAdjPower.Int64()))
+
 	mi, err := api.StateMinerInfo(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err

@@ -50,8 +50,10 @@ func (m *StorageMiner) jobsRecord(mi config.MinerInfo) error {
 	for task := range m.dc.Running[size] {
 		result[task.Short()] = 0
 	}
+	count := 0
 	for _, jobs := range jobss {
 		for _, job := range jobs {
+			count++
 			if job.RunWait != 0 {
 				continue
 			}
@@ -61,6 +63,7 @@ func (m *StorageMiner) jobsRecord(mi config.MinerInfo) error {
 			}
 		}
 	}
+	stats.Record(ctx, metrics.JobsNumber.M(int64(count)))
 
 	for task, n := range result {
 		ctx, _ = tag.New(ctx,

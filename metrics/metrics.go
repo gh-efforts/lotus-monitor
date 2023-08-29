@@ -40,12 +40,15 @@ var (
 
 	Balance = stats.Float64("balance", "actor balance (FIL)", "FIL")
 
-	MinerFaults     = stats.Int64("miner/faults", "faulty sectors", stats.UnitDimensionless)
-	MinerRecoveries = stats.Int64("miner/recoveries", "recovery sectors", stats.UnitDimensionless)
+	MinerFaults          = stats.Int64("miner/faults", "faulty sectors", stats.UnitDimensionless)
+	MinerRecoveries      = stats.Int64("miner/recoveries", "recovery sectors", stats.UnitDimensionless)
+	MinerRawBytePower    = stats.Int64("miner/raw_byte_power", "miner raw byte power", stats.UnitBytes)
+	MinerQualityAdjPower = stats.Int64("miner/quality_adj_power", "miner quality adj power", stats.UnitBytes)
 
 	DeadlineCost = stats.Int64("deadline/cost", "proven cost of current deadline (epoch)", "epoch")
 
 	JobsTimeout = stats.Int64("miner/jobs", "the number of jobs that timed out", stats.UnitDimensionless)
+	JobsNumber  = stats.Int64("miner/jobs_number", "total number of sealing jobs", stats.UnitDimensionless)
 
 	LuckyValue = stats.Float64("lucky_value", "lucky value of miner", stats.UnitDimensionless)
 
@@ -82,6 +85,16 @@ var (
 		Measure:     MinerRecoveries,
 		TagKeys:     []tag.Key{MinerID},
 	}
+	MinerRawBytePowerView = &view.View{
+		Aggregation: view.LastValue(),
+		Measure:     MinerRawBytePower,
+		TagKeys:     []tag.Key{MinerID},
+	}
+	MinerQualityAdjPowerView = &view.View{
+		Aggregation: view.LastValue(),
+		Measure:     MinerQualityAdjPower,
+		TagKeys:     []tag.Key{MinerID},
+	}
 	DeadlineCostView = &view.View{
 		Aggregation: view.LastValue(),
 		Measure:     DeadlineCost,
@@ -91,6 +104,11 @@ var (
 		Aggregation: view.LastValue(),
 		Measure:     JobsTimeout,
 		TagKeys:     []tag.Key{MinerID, TaskType},
+	}
+	JobsNumberView = &view.View{
+		Aggregation: view.LastValue(),
+		Measure:     JobsNumber,
+		TagKeys:     []tag.Key{MinerID},
 	}
 	LuckyValueView = &view.View{
 		Aggregation: view.LastValue(),
@@ -134,8 +152,11 @@ var Views = []*view.View{
 	BalanceView,
 	MinerFaultsView,
 	MinerRecoveriesView,
+	MinerRawBytePowerView,
+	MinerQualityAdjPowerView,
 	DeadlineCostView,
 	JobsTimeoutView,
+	JobsNumberView,
 	LuckyValueView,
 	BlockOnchainView,
 	BlockOrphanCountView,
