@@ -4,13 +4,16 @@ lotus-monitor 使用 lotus 和 miner 的API，把监控项转化为 prometheus m
 ## 功能
 - block count
 - block took duration
-- orphan block
+- orphan block 
+- orphan block count
 - lucky value
 - faulty sectors
 - recovery sectors
 - current deadline proven cost
 - owner/worker/control balance
 - sealing jobs timeout count
+- sealing jobs count
+- miner power
 
 ## 部署
 ```bash
@@ -32,3 +35,6 @@ sealing jobs 超时记录的阈值
 查询lucky值的URL 
 - orphanCheckHeight   
 出块后经过几个高度后再检查是否为孤块（防止链重组），默认为 3
+## 鸣谢
+- https://github.com/s0nik42/lotus-farcaster
+- https://github.com/xsw1058/lotus-exporter
