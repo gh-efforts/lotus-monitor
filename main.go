@@ -100,19 +100,20 @@ var runCmd = &cli.Command{
 		listen := cctx.String("listen")
 		log.Infow("monitor server", "listen", listen)
 
-		go func() {
-			<-ctx.Done()
-			time.Sleep(time.Millisecond * 200)
-			log.Info("closed monitor server")
-			os.Exit(0)
-		}()
-
 		http.Handle("/metrics", exporter)
 		http.Handle("/blocks", blocks.NewBlocks(ctx, dc))
 		http.Handle("/reload", dc)
 		server := &http.Server{
 			Addr: listen,
 		}
+
+		go func() {
+			<-ctx.Done()
+			time.Sleep(time.Millisecond * 100)
+			log.Info("closed monitor server")
+			server.Shutdown(ctx)
+		}()
+
 		return server.ListenAndServe()
 	},
 }
