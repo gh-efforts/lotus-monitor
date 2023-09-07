@@ -172,14 +172,16 @@ func (dc *DynamicConfig) reload() error {
 			if nv != v {
 				mi, err := toMinerInfo(dc.ctx, nk, nv)
 				if err != nil {
-					return err
+					log.Error(err)
+					continue
 				}
 				update = append(update, mi)
 			}
 		} else {
 			mi, err := toMinerInfo(dc.ctx, nk, nv)
 			if err != nil {
-				return err
+				log.Error(err)
+				continue
 			}
 			insert = append(insert, mi)
 		}
@@ -189,7 +191,8 @@ func (dc *DynamicConfig) reload() error {
 		if _, ok := new[k]; !ok {
 			maddr, err := address.NewFromString(k)
 			if err != nil {
-				return err
+				log.Error(err)
+				continue
 			}
 			remove = append(remove, maddr)
 		}
@@ -365,6 +368,7 @@ func toMinerInfo(ctx context.Context, m string, info APIInfo) (MinerInfo, error)
 		return MinerInfo{}, err
 	}
 	if apiAddr != maddr {
+		closer()
 		return MinerInfo{}, fmt.Errorf("maddr not match, config maddr: %s, api maddr: %s", maddr, apiAddr)
 	}
 	size, err := api.ActorSectorSize(ctx, maddr)
