@@ -13,6 +13,8 @@ import (
 
 	logging "github.com/ipfs/go-log/v2"
 
+	_ "net/http/pprof"
+
 	cliutil "github.com/filecoin-project/lotus/cli/util"
 	"github.com/gh-efforts/lotus-monitor/blocks"
 	"github.com/gh-efforts/lotus-monitor/config"
