@@ -26,7 +26,7 @@ make
 - miners  
 要监控的miner列表，没有封存任务的，API可设空。  
 这个字段可以动态修改，其他字段不支持动态修改。  
-修改后，执行 `curl 127.0.0.1:6789/reload` 重载配置文件。  
+修改后，执行 `curl 127.0.0.1:6789/reload` 重载配置文件。（或者lotus-monitor reload）
 - running  
 sealing jobs 超时记录的阈值  
 - recordInterval   

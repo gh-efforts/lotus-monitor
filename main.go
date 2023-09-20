@@ -33,6 +33,8 @@ func main() {
 
 	local := []*cli.Command{
 		runCmd,
+		reloadCmd,
+		pprofCmd,
 	}
 
 	app := &cli.App{
