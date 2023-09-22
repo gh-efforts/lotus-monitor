@@ -1,5 +1,8 @@
 # lotus-monitor
-lotus-monitor 使用 lotus 和 miner 的API，把监控项转化为 prometheus metrics
+lotus monitor architecture
+![monitor-architecture](./monitor-architecture.png)
+
+lotus-monitor 使用 lotus 和 miner 的API，把监控项转化为 prometheus metrics (上图中 custom metrics)
 
 ## 功能
 - block count
