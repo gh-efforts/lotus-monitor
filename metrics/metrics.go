@@ -57,6 +57,8 @@ var (
 	BlockOrphan       = stats.Int64("block/orphan", "mined orphan block", stats.UnitDimensionless)
 	BlockTookDuration = stats.Float64("block/took", "duration of mined a block", stats.UnitSeconds)
 
+	ControlDays = stats.Float64("control/days", "control address available days", stats.UnitDimensionless)
+
 	SelfError          = stats.Int64("self/error", "couter for monitor error", stats.UnitDimensionless)
 	SelfRecordDuration = stats.Float64("self/record", "duration of every record", stats.UnitMilliseconds)
 )
@@ -135,6 +137,11 @@ var (
 		Aggregation: blockTookDurationDistribution,
 		TagKeys:     []tag.Key{MinerID},
 	}
+	ControlDaysView = &view.View{
+		Measure:     ControlDays,
+		Aggregation: view.LastValue(),
+		TagKeys:     []tag.Key{MinerID, ActorAddress},
+	}
 	SelfErrorView = &view.View{
 		Measure:     SelfError,
 		Aggregation: view.Count(),
@@ -162,6 +169,7 @@ var Views = []*view.View{
 	BlockOrphanCountView,
 	BlockOrphanView,
 	BlockTookDurationView,
+	ControlDaysView,
 	SelfErrorView,
 	SelfRecordDurationView,
 }
