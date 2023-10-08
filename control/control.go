@@ -35,13 +35,12 @@ func NewControl(ctx context.Context, dc *config.DynamicConfig) *Control {
 
 func (c *Control) Run() {
 	//上海时间每天9:30执行一次
-	_, err := cron.New().AddFunc("CRON_TZ=Asia/Shanghai 30 09 * * *", func() {
-		c.controlRecords()
-	})
-
+	r := cron.New()
+	_, err := r.AddFunc("CRON_TZ=Asia/Shanghai 30 09 * * *", func() { c.controlRecords() })
 	if err != nil {
 		panic(err)
 	}
+	r.Start()
 }
 
 func (c *Control) controlRecords() {
@@ -101,6 +100,7 @@ func (c *Control) controlRecord(maddr address.Address, tody, yesterday types.Tip
 		ctx, _ = tag.New(ctx,
 			tag.Upsert(metrics.ActorAddress, ca.String()),
 		)
+		log.Debugw("controlRecord", "todyBalance", actor.Balance, "ydayBalance", actor2.Balance, "delta", delta, "days", days)
 		stats.Record(ctx, metrics.ControlDays.M(days))
 	}
 
