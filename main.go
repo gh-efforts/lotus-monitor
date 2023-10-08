@@ -18,6 +18,7 @@ import (
 	cliutil "github.com/filecoin-project/lotus/cli/util"
 	"github.com/gh-efforts/lotus-monitor/blocks"
 	"github.com/gh-efforts/lotus-monitor/config"
+	"github.com/gh-efforts/lotus-monitor/control"
 	"github.com/gh-efforts/lotus-monitor/filfox"
 	"github.com/gh-efforts/lotus-monitor/fullnode"
 	"github.com/gh-efforts/lotus-monitor/metrics"
@@ -100,6 +101,7 @@ var runCmd = &cli.Command{
 		fullnode.NewFullNode(ctx, dc).Run()
 		storageminer.NewStorageMiner(ctx, dc).Run()
 		filfox.NewFilFox(ctx, dc).Run()
+		control.NewControl(ctx, dc).Run()
 
 		listen := cctx.String("listen")
 		log.Infow("monitor server", "listen", listen)

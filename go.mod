@@ -10,6 +10,7 @@ require (
 	github.com/filecoin-project/lotus v1.23.3
 	github.com/ipfs/go-cid v0.4.1
 	github.com/ipfs/go-log/v2 v2.5.1
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/urfave/cli/v2 v2.25.7
 	go.opencensus.io v0.24.0
 )
