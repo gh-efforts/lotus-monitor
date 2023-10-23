@@ -41,7 +41,8 @@ var (
 	Balance = stats.Float64("balance", "actor balance (FIL)", "FIL")
 
 	MinerFaults          = stats.Int64("miner/faults", "faulty sectors", stats.UnitDimensionless)
-	MinerRecoveries      = stats.Int64("miner/recoveries", "recovery sectors", stats.UnitDimensionless)
+	MinerActives         = stats.Int64("miner/actives", "active sectors", stats.UnitDimensionless)
+	MinerLives           = stats.Int64("miner/lives", "live sectors", stats.UnitDimensionless)
 	MinerRawBytePower    = stats.Int64("miner/raw_byte_power", "miner raw byte power", stats.UnitBytes)
 	MinerQualityAdjPower = stats.Int64("miner/quality_adj_power", "miner quality adj power", stats.UnitBytes)
 
@@ -82,9 +83,14 @@ var (
 		Measure:     MinerFaults,
 		TagKeys:     []tag.Key{MinerID},
 	}
-	MinerRecoveriesView = &view.View{
+	MinerActivesView = &view.View{
 		Aggregation: view.LastValue(),
-		Measure:     MinerRecoveries,
+		Measure:     MinerActives,
+		TagKeys:     []tag.Key{MinerID},
+	}
+	MinerLivesView = &view.View{
+		Aggregation: view.LastValue(),
+		Measure:     MinerLives,
 		TagKeys:     []tag.Key{MinerID},
 	}
 	MinerRawBytePowerView = &view.View{
@@ -158,7 +164,8 @@ var Views = []*view.View{
 	InfoView,
 	BalanceView,
 	MinerFaultsView,
-	MinerRecoveriesView,
+	MinerActivesView,
+	MinerLivesView,
 	MinerRawBytePowerView,
 	MinerQualityAdjPowerView,
 	DeadlineCostView,
