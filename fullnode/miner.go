@@ -40,25 +40,13 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 	)
 	api := n.dc.LotusApi
 
-	faults, err := api.StateMinerFaults(ctx, maddr, types.EmptyTSK)
+	ms, err := api.StateMinerSectorCount(ctx, maddr, types.EmptyTSK)
 	if err != nil {
 		return err
 	}
-	f, err := faults.Count()
-	if err != nil {
-		return err
-	}
-	stats.Record(ctx, metrics.MinerFaults.M(int64(f)))
-
-	recoveries, err := api.StateMinerRecoveries(ctx, maddr, types.EmptyTSK)
-	if err != nil {
-		return err
-	}
-	r, err := recoveries.Count()
-	if err != nil {
-		return err
-	}
-	stats.Record(ctx, metrics.MinerRecoveries.M(int64(r)))
+	stats.Record(ctx, metrics.MinerFaults.M(int64(ms.Faulty)))
+	stats.Record(ctx, metrics.MinerActives.M(int64(ms.Active)))
+	stats.Record(ctx, metrics.MinerLives.M(int64(ms.Live)))
 
 	mp, err := api.StateMinerPower(ctx, maddr, types.EmptyTSK)
 	if err != nil {
