@@ -1,6 +1,6 @@
-package main
+package build
 
-const BuildVersion = "0.1.4"
+const BuildVersion = "0.1.5"
 
 var CurrentCommit string
 
