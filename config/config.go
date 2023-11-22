@@ -291,6 +291,8 @@ func (dc *DynamicConfig) updateConfig(miner string, api *APIInfo) error {
 		return err
 	}
 
+	dc.cfg.Miners = c.Miners
+
 	log.Infof("update config: %s", miner)
 	return nil
 }

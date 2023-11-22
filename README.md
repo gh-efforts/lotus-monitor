@@ -11,12 +11,14 @@ lotus-monitor 使用 lotus 和 miner 的API，把监控项转化为 prometheus m
 - orphan block count
 - lucky value
 - faulty sectors
-- recovery sectors
+- active sectors
+- live sectors
 - current deadline proven cost
 - owner/worker/control balance
 - sealing jobs timeout count
 - sealing jobs count
 - miner power
+- control address available days
 
 ## 部署
 ```bash
@@ -38,6 +40,23 @@ sealing jobs 超时记录的阈值
 查询lucky值的URL 
 - orphanCheckHeight   
 出块后经过几个高度后再检查是否为孤块（防止链重组），默认为 3
+## 命令行
+通过命令行或者API管理miner
+```bash
+➜  lotus-monitor git:(api) ✗ ./lotus-monitor miner
+NAME:
+   lotus-monitor miner - manage miner list
+
+USAGE:
+   lotus-monitor miner command [command options] [arguments...]
+
+COMMANDS:
+   add      add new miner
+   remove   remove miner
+   list     list all miner
+   help, h  Shows a list of commands or help for one command
+```
+
 ## 鸣谢
 - https://github.com/s0nik42/lotus-farcaster
 - https://github.com/xsw1058/lotus-exporter
