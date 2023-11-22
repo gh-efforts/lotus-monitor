@@ -3,7 +3,8 @@ package build
 const BuildVersion = "0.1.5"
 
 var CurrentCommit string
+var BuildType = "+mainnet"
 
 func UserVersion() string {
-	return BuildVersion + CurrentCommit
+	return BuildVersion + BuildType + CurrentCommit
 }

@@ -10,6 +10,7 @@ require (
 	github.com/filecoin-project/lotus v1.23.3
 	github.com/ipfs/go-cid v0.4.1
 	github.com/ipfs/go-log/v2 v2.5.1
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/urfave/cli/v2 v2.25.7
 	go.opencensus.io v0.24.0
@@ -122,7 +123,6 @@ require (
 	github.com/miekg/dns v1.1.54 // indirect
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/multiformats/go-base32 v0.1.0 // indirect
 	github.com/multiformats/go-base36 v0.2.0 // indirect

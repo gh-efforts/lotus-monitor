@@ -15,6 +15,9 @@ GOFLAGS+=-ldflags="$(ldflags)"
 build: lotus-monitor
 .PHONY: build
 
+calibnet: GOFLAGS+=-tags=calibnet
+calibnet: build
+
 lotus-monitor:
 	rm -f lotus-monitor
 	go build $(GOFLAGS) -o lotus-monitor ./cmd/lotus-monitor
