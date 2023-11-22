@@ -36,6 +36,7 @@ func main() {
 	local := []*cli.Command{
 		runCmd,
 		reloadCmd,
+		minerCmd,
 		pprofCmd,
 	}
 
@@ -109,7 +110,11 @@ var runCmd = &cli.Command{
 
 		http.Handle("/metrics", exporter)
 		http.Handle("/blocks", blocks.NewBlocks(ctx, dc))
-		http.Handle("/reload", dc)
+		http.Handle("/reload", http.HandlerFunc(dc.ReloadHandle))
+		http.Handle("/miner/add", http.HandlerFunc(dc.AddMinerHandle))
+		http.Handle("/miner/remove/", http.HandlerFunc(dc.RemoveMinerHandle))
+		http.Handle("/miner/list", http.HandlerFunc(dc.ListMinerHandle))
+
 		server := &http.Server{
 			Addr: listen,
 		}
