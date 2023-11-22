@@ -5,17 +5,24 @@
 
 unexport GOFLAGS
 
-ldflags=-X=main.CurrentCommit=+git.$(subst -,.,$(shell git describe --always --match=NeVeRmAtCh --dirty 2>/dev/null || git rev-parse --short HEAD 2>/dev/null))
+ldflags=-X=github.com/gh-efforts/lotus-monitor/build.CurrentCommit=+git.$(subst -,.,$(shell git describe --always --match=NeVeRmAtCh --dirty 2>/dev/null || git rev-parse --short HEAD 2>/dev/null))
 ifneq ($(strip $(LDFLAGS)),)
 	ldflags+=-extldflags=$(LDFLAGS)
 endif
 
 GOFLAGS+=-ldflags="$(ldflags)"
 
-build:
+build: lotus-monitor
+.PHONY: build
+
+calibnet: GOFLAGS+=-tags=calibnet
+calibnet: build
+
+lotus-monitor:
 	rm -f lotus-monitor
-	go build $(GOFLAGS) -o lotus-monitor
+	go build $(GOFLAGS) -o lotus-monitor ./cmd/lotus-monitor
 
 clean:
 	rm -f lotus-monitor
 	go clean
+.PHONY: clean

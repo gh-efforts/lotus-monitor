@@ -132,11 +132,6 @@ func NewDynamicConfig(ctx context.Context, path string) (*DynamicConfig, error) 
 	return dc, nil
 }
 
-func (dc *DynamicConfig) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Info("received reload config request")
-	dc.reloadRequest <- struct{}{}
-}
-
 func (dc *DynamicConfig) watch() {
 	go func() {
 		for {
@@ -236,6 +231,70 @@ func (dc *DynamicConfig) updateMiners(update []MinerInfo, insert []MinerInfo, re
 		}
 		delete(dc.miners, r)
 	}
+}
+
+func (dc *DynamicConfig) addMiner(miner address.Address, api APIInfo) error {
+	dc.lk.Lock()
+	defer dc.lk.Unlock()
+
+	mi, err := toMinerInfo(dc.ctx, miner.String(), api)
+	if err != nil {
+		return err
+	}
+
+	_, ok := dc.miners[miner]
+	if ok {
+		if c := dc.miners[miner].closer; c != nil {
+			c()
+			log.Infow("closed removed miner api", "miner", miner)
+		}
+	}
+
+	dc.miners[miner] = mi
+
+	return dc.updateConfig(miner.String(), &api)
+}
+
+func (dc *DynamicConfig) removeMiner(miner address.Address) error {
+	dc.lk.Lock()
+	defer dc.lk.Unlock()
+
+	if c := dc.miners[miner].closer; c != nil {
+		c()
+		log.Infow("closed removed miner api", "miner", miner)
+	}
+
+	delete(dc.miners, miner)
+
+	return dc.updateConfig(miner.String(), nil)
+}
+
+func (dc *DynamicConfig) updateConfig(miner string, api *APIInfo) error {
+	c, err := LoadConfig(dc.path)
+	if err != nil {
+		return err
+	}
+
+	if api == nil {
+		delete(c.Miners, miner)
+	} else {
+		c.Miners[miner] = *api
+	}
+
+	data, err := json.MarshalIndent(c, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(dc.path, data, 0666)
+	if err != nil {
+		return err
+	}
+
+	dc.cfg.Miners = c.Miners
+
+	log.Infof("update config: %s", miner)
+	return nil
 }
 
 func (dc *DynamicConfig) Close() {

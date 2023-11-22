@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
+	"github.com/mitchellh/go-homedir"
 	"github.com/urfave/cli/v2"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -17,6 +18,7 @@ import (
 
 	cliutil "github.com/filecoin-project/lotus/cli/util"
 	"github.com/gh-efforts/lotus-monitor/blocks"
+	"github.com/gh-efforts/lotus-monitor/build"
 	"github.com/gh-efforts/lotus-monitor/config"
 	"github.com/gh-efforts/lotus-monitor/control"
 	"github.com/gh-efforts/lotus-monitor/filfox"
@@ -35,13 +37,14 @@ func main() {
 	local := []*cli.Command{
 		runCmd,
 		reloadCmd,
+		minerCmd,
 		pprofCmd,
 	}
 
 	app := &cli.App{
 		Name:     "lotus-monitor",
 		Usage:    "lotus monitor server",
-		Version:  UserVersion(),
+		Version:  build.UserVersion(),
 		Commands: local,
 	}
 
@@ -68,6 +71,11 @@ var runCmd = &cli.Command{
 		},
 	},
 	Action: func(cctx *cli.Context) error {
+		path, err := homedir.Expand(cctx.String("config"))
+		if err != nil {
+			return err
+		}
+
 		if cctx.Bool("debug") {
 			logging.SetLogLevelRegex("monitor/*", "DEBUG")
 		}
@@ -75,7 +83,7 @@ var runCmd = &cli.Command{
 		log.Info("starting lotus monitor...")
 
 		ctx := cliutil.ReqContext(cctx)
-		dc, err := config.NewDynamicConfig(ctx, cctx.String("config"))
+		dc, err := config.NewDynamicConfig(ctx, path)
 		if err != nil {
 			return err
 		}
@@ -88,8 +96,8 @@ var runCmd = &cli.Command{
 		}
 
 		ctx, _ = tag.New(ctx,
-			tag.Insert(metrics.Version, BuildVersion),
-			tag.Insert(metrics.Commit, CurrentCommit),
+			tag.Insert(metrics.Version, build.BuildVersion),
+			tag.Insert(metrics.Commit, build.CurrentCommit),
 		)
 		if err := view.Register(
 			metrics.Views...,
@@ -108,7 +116,11 @@ var runCmd = &cli.Command{
 
 		http.Handle("/metrics", exporter)
 		http.Handle("/blocks", blocks.NewBlocks(ctx, dc))
-		http.Handle("/reload", dc)
+		http.Handle("/reload", http.HandlerFunc(dc.ReloadHandle))
+		http.Handle("/miner/add", http.HandlerFunc(dc.AddMinerHandle))
+		http.Handle("/miner/remove/", http.HandlerFunc(dc.RemoveMinerHandle))
+		http.Handle("/miner/list", http.HandlerFunc(dc.ListMinerHandle))
+
 		server := &http.Server{
 			Addr: listen,
 		}
