@@ -237,20 +237,20 @@ func (dc *DynamicConfig) addMiner(miner address.Address, api APIInfo) error {
 	dc.lk.Lock()
 	defer dc.lk.Unlock()
 
-	mi, ok := dc.miners[miner]
+	mi, err := toMinerInfo(dc.ctx, miner.String(), api)
+	if err != nil {
+		return err
+	}
+
+	_, ok := dc.miners[miner]
 	if ok {
-		if c := mi.closer; c != nil {
+		if c := dc.miners[miner].closer; c != nil {
 			c()
 			log.Infow("closed removed miner api", "miner", miner)
 		}
 	}
 
-	i, err := toMinerInfo(dc.ctx, miner.String(), api)
-	if err != nil {
-		return err
-	}
-
-	dc.miners[miner] = i
+	dc.miners[miner] = mi
 
 	return dc.updateConfig(miner.String(), &api)
 }
