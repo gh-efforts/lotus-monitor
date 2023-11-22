@@ -40,8 +40,8 @@ sealing jobs 超时记录的阈值
 查询lucky值的URL 
 - orphanCheckHeight   
 出块后经过几个高度后再检查是否为孤块（防止链重组），默认为 3
-## 命令行
-通过命令行或者API管理miner
+## 管理miner
+通过命令行管理miner
 ```bash
 ➜  lotus-monitor git:(api) ✗ ./lotus-monitor miner
 NAME:
@@ -56,7 +56,18 @@ COMMANDS:
    list     list all miner
    help, h  Shows a list of commands or help for one command
 ```
-
+通过API管理miner
+```bash
+# list
+root@DCZ-2007FD101U42-L01-W29:~/lotus-monitor# curl 127.0.0.1:6789/miner/list
+["t028064","t03751","t01037","t017387"]
+# remove
+root@DCZ-2007FD101U42-L01-W29:~/lotus-monitor# curl 127.0.0.1:6789/miner/remove/t03751
+root@DCZ-2007FD101U42-L01-W29:~/lotus-monitor# curl 127.0.0.1:6789/miner/list
+["t01037","t017387","t028064"]
+# add miner
+curl -X POST 127.0.0.1:6789/miner/add -H 'Content-Type: application/json' -d '{"miner":"t028064","api":{"addr":"","token":""}}'
+```
 ## 鸣谢
 - https://github.com/s0nik42/lotus-farcaster
 - https://github.com/xsw1058/lotus-exporter
