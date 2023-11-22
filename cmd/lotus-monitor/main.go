@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
+	"github.com/mitchellh/go-homedir"
 	"github.com/urfave/cli/v2"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -70,6 +71,11 @@ var runCmd = &cli.Command{
 		},
 	},
 	Action: func(cctx *cli.Context) error {
+		path, err := homedir.Expand(cctx.String("config"))
+		if err != nil {
+			return err
+		}
+
 		if cctx.Bool("debug") {
 			logging.SetLogLevelRegex("monitor/*", "DEBUG")
 		}
@@ -77,7 +83,7 @@ var runCmd = &cli.Command{
 		log.Info("starting lotus monitor...")
 
 		ctx := cliutil.ReqContext(cctx)
-		dc, err := config.NewDynamicConfig(ctx, cctx.String("config"))
+		dc, err := config.NewDynamicConfig(ctx, path)
 		if err != nil {
 			return err
 		}

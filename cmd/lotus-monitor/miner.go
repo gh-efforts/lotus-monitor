@@ -46,8 +46,8 @@ var minerAddCmd = &cli.Command{
 		id := cctx.String("miner-id")
 		addr := cctx.String("addr")
 		token := cctx.String("token")
-		if id == "" || addr == "" || token == "" {
-			return errors.New("param is empty")
+		if id == "" {
+			return errors.New("miner-id is empty")
 		}
 
 		api := config.APIInfo{

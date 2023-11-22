@@ -252,7 +252,7 @@ func (dc *DynamicConfig) addMiner(miner address.Address, api APIInfo) error {
 
 	dc.miners[miner] = i
 
-	return dc.updateConfig(miner.String(), api)
+	return dc.updateConfig(miner.String(), &api)
 }
 
 func (dc *DynamicConfig) removeMiner(miner address.Address) error {
@@ -266,19 +266,19 @@ func (dc *DynamicConfig) removeMiner(miner address.Address) error {
 
 	delete(dc.miners, miner)
 
-	return dc.updateConfig(miner.String(), APIInfo{})
+	return dc.updateConfig(miner.String(), nil)
 }
 
-func (dc *DynamicConfig) updateConfig(miner string, api APIInfo) error {
+func (dc *DynamicConfig) updateConfig(miner string, api *APIInfo) error {
 	c, err := LoadConfig(dc.path)
 	if err != nil {
 		return err
 	}
 
-	if api == (APIInfo{}) {
+	if api == nil {
 		delete(c.Miners, miner)
 	} else {
-		c.Miners[miner] = api
+		c.Miners[miner] = *api
 	}
 
 	data, err := json.MarshalIndent(c, "", "\t")
