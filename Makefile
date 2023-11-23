@@ -21,6 +21,7 @@ calibnet: build
 lotus-monitor:
 	rm -f lotus-monitor
 	go build $(GOFLAGS) -o lotus-monitor ./cmd/lotus-monitor
+.PHONY: lotus-monitor
 
 clean:
 	rm -f lotus-monitor
