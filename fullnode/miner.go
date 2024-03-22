@@ -80,5 +80,11 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 		stats.Record(ctx, metrics.Balance.M(types.BigDivFloat(actor.Balance, types.FromFil(1))))
 	}
 
+	balance, err := api.StateMinerAvailableBalance(ctx, maddr, types.EmptyTSK)
+	if err != nil {
+		return err
+	}
+	stats.Record(ctx, metrics.MinerAvailableBalance.M(balance.Int64()))
+
 	return nil
 }
