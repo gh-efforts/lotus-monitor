@@ -46,6 +46,8 @@ var (
 	MinerRawBytePower    = stats.Int64("miner/raw_byte_power", "miner raw byte power", stats.UnitBytes)
 	MinerQualityAdjPower = stats.Int64("miner/quality_adj_power", "miner quality adj power", stats.UnitBytes)
 
+	MinerAvailableBalance = stats.Int64("miner/available_balance", "miner available balance", stats.UnitBytes)
+
 	DeadlineCost = stats.Int64("deadline/cost", "proven cost of current deadline (epoch)", "epoch")
 
 	JobsTimeout = stats.Int64("miner/jobs", "the number of jobs that timed out", stats.UnitDimensionless)
@@ -101,6 +103,11 @@ var (
 	MinerQualityAdjPowerView = &view.View{
 		Aggregation: view.LastValue(),
 		Measure:     MinerQualityAdjPower,
+		TagKeys:     []tag.Key{MinerID},
+	}
+	MinerAvailableBalanceView = &view.View{
+		Aggregation: view.LastValue(),
+		Measure:     MinerAvailableBalance,
 		TagKeys:     []tag.Key{MinerID},
 	}
 	DeadlineCostView = &view.View{
@@ -168,6 +175,7 @@ var Views = []*view.View{
 	MinerLivesView,
 	MinerRawBytePowerView,
 	MinerQualityAdjPowerView,
+	MinerAvailableBalanceView,
 	DeadlineCostView,
 	JobsTimeoutView,
 	JobsNumberView,
