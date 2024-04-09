@@ -46,7 +46,7 @@ var (
 	MinerRawBytePower    = stats.Int64("miner/raw_byte_power", "miner raw byte power", stats.UnitBytes)
 	MinerQualityAdjPower = stats.Int64("miner/quality_adj_power", "miner quality adj power", stats.UnitBytes)
 
-	MinerAvailableBalance = stats.Int64("miner/available_balance", "miner available balance", stats.UnitBytes)
+	MinerAvailableBalance = stats.Float64("miner/available_balance", "miner available balance (FIL)", "FIL")
 
 	DeadlineCost = stats.Int64("deadline/cost", "proven cost of current deadline (epoch)", "epoch")
 

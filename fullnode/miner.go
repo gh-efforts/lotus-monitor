@@ -84,7 +84,7 @@ func (n *FullNode) minerRecord(maddr address.Address) error {
 	if err != nil {
 		return err
 	}
-	stats.Record(ctx, metrics.MinerAvailableBalance.M(balance.Int64()))
+	stats.Record(ctx, metrics.MinerAvailableBalance.M(types.BigDivFloat(balance, types.FromFil(1))))
 
 	return nil
 }
