@@ -12,8 +12,11 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/filecoin-project/go-state-types/abi"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/client"
 	"github.com/filecoin-project/lotus/api/v0api"
+	"github.com/filecoin-project/lotus/api/v1api"
+	cliutil "github.com/filecoin-project/lotus/cli/util"
 	"github.com/filecoin-project/lotus/storage/sealer/sealtasks"
 	logging "github.com/ipfs/go-log/v2"
 )
@@ -53,7 +56,7 @@ type RecordInterval struct {
 }
 
 type Config struct {
-	Lotus             APIInfo                                            `json:"lotus"`
+	Lotus             []string                                           `json:"lotus"`
 	Miners            map[string]APIInfo                                 `json:"miners"`
 	Running           map[abi.SectorSize]map[sealtasks.TaskType]Duration `json:"running"`
 	RecordInterval    RecordInterval                                     `json:"recordInterval"`
@@ -74,7 +77,7 @@ type DynamicConfig struct {
 	path          string
 	reloadRequest chan struct{}
 
-	LotusApi v0api.FullNode
+	LotusApi api.FullNode
 	closer   jsonrpc.ClientCloser
 
 	Running           map[abi.SectorSize]map[sealtasks.TaskType]Duration
@@ -86,23 +89,80 @@ type DynamicConfig struct {
 	miners map[address.Address]MinerInfo
 }
 
+type httpHead struct {
+	addr   string
+	header http.Header
+}
+
+func getFullNodeAPIV1(ctx context.Context, ainfoCfg []string) (v1api.FullNode, jsonrpc.ClientCloser, error) {
+	var httpHeads []httpHead
+	version := "v1"
+	{
+		if len(ainfoCfg) == 0 {
+			return nil, nil, fmt.Errorf("could not get API info: ainfoCfg is empty")
+		}
+		for _, i := range ainfoCfg {
+			ainfo := cliutil.ParseApiInfo(i)
+			addr, err := ainfo.DialArgs(version)
+			if err != nil {
+				return nil, nil, fmt.Errorf("could not get DialArgs: %w", err)
+			}
+			httpHeads = append(httpHeads, httpHead{addr: addr, header: ainfo.AuthHeader()})
+		}
+	}
+
+	var fullNodes []api.FullNode
+	var closers []jsonrpc.ClientCloser
+
+	for _, head := range httpHeads {
+		v1api, closer, err := client.NewFullNodeRPCV1(ctx, head.addr, head.header)
+		if err != nil {
+			log.Warnf("Not able to establish connection to node with addr: %s, Reason: %s", head.addr, err.Error())
+			continue
+		}
+		fullNodes = append(fullNodes, v1api)
+		closers = append(closers, closer)
+	}
+
+	if len(httpHeads) > 1 && len(fullNodes) < 2 {
+		return nil, nil, fmt.Errorf("not able to establish connection to more than a single node")
+	}
+
+	finalCloser := func() {
+		for _, c := range closers {
+			c()
+		}
+	}
+
+	var v1API api.FullNodeStruct
+	cliutil.FullNodeProxy(fullNodes, &v1API)
+
+	v, err := v1API.Version(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !v.APIVersion.EqMajorMinor(api.FullAPIVersion1) {
+		return nil, nil, fmt.Errorf("remote API version didn't match (expected %s, remote %s)", api.FullAPIVersion1, v.APIVersion)
+	}
+
+	return &v1API, finalCloser, nil
+}
+
 func NewDynamicConfig(ctx context.Context, path string) (*DynamicConfig, error) {
 	cfg, err := LoadConfig(path)
 	if err != nil {
 		return nil, err
 	}
-	addr := "ws://" + cfg.Lotus.Addr + "/rpc/v0"
-	headers := http.Header{"Authorization": []string{"Bearer " + cfg.Lotus.Token}}
-	api, closer, err := client.NewFullNodeRPCV0(ctx, addr, headers)
+	a, c, err := getFullNodeAPIV1(ctx, cfg.Lotus)
 	if err != nil {
 		return nil, err
 	}
 
-	head, err := api.ChainHead(ctx)
+	head, err := a.ChainHead(ctx)
 	if err != nil {
 		return nil, err
 	}
-	log.Infow("connected to lotus", "addr", cfg.Lotus.Addr, "head", head.Height())
+	log.Infow("connected to lotus", "head", head.Height())
 
 	miners := map[address.Address]MinerInfo{}
 	for m, info := range cfg.Miners {
@@ -119,8 +179,8 @@ func NewDynamicConfig(ctx context.Context, path string) (*DynamicConfig, error) 
 		cfg:               cfg,
 		path:              path,
 		reloadRequest:     make(chan struct{}, 10),
-		LotusApi:          api,
-		closer:            closer,
+		LotusApi:          a,
+		closer:            c,
 		Running:           cfg.Running,
 		RecordInterval:    cfg.RecordInterval,
 		FilFoxURL:         cfg.FilFoxURL,
@@ -349,10 +409,7 @@ func LoadConfig(path string) (*Config, error) {
 }
 
 func DefaultConfig() *Config {
-	lotus := APIInfo{
-		Addr:  "10.122.1.29:1234",
-		Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIl19.l04qKWmgyDRqeT3kjMfxxhQpKwLmYk8eeDIW-NcaX_c",
-	}
+	lotus := []string{"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.rdUrdfAtXRQjqTQSDR_mHTJnU1loMg49bED-78WIrRE:/ip4/127.0.0.1/tcp/1234/http"}
 	miner := APIInfo{
 		Addr:  "10.122.1.29:2345",
 		Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.tlJ8d4RIudknLHrKDSjyKzfbh8hGp9Ez1FZszblQLAI",
