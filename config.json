@@ -1,8 +1,8 @@
 {
-	"lotus": {
-		"addr": "10.122.1.29:1234",
-		"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIl19.l04qKWmgyDRqeT3kjMfxxhQpKwLmYk8eeDIW-NcaX_c"
-	},
+	"lotus": [
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.rdUrdfAtXRQjqTQSDR_mHTJnU1loMg49bED-78WIrRE:/ip4/127.0.0.1/tcp/1234/http",
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.Znxv4ZV4djSOqhvPDGGANOzYpfSexMohq4Ba-9dJlaU:/ip4/10.122.4.30/tcp/1234/http"
+	],
 	"miners": {
 		"t01037": {
 			"addr": "",

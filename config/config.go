@@ -120,6 +120,7 @@ func getFullNodeAPIV1(ctx context.Context, ainfoCfg []string) (v1api.FullNode, j
 			log.Warnf("Not able to establish connection to node with addr: %s, Reason: %s", head.addr, err.Error())
 			continue
 		}
+		log.Infow("connected to lotus", "addr", head.addr)
 		fullNodes = append(fullNodes, v1api)
 		closers = append(closers, closer)
 	}
@@ -162,7 +163,7 @@ func NewDynamicConfig(ctx context.Context, path string) (*DynamicConfig, error) 
 	if err != nil {
 		return nil, err
 	}
-	log.Infow("connected to lotus", "head", head.Height())
+	log.Infow("connected to lotus proxy", "head", head.Height())
 
 	miners := map[address.Address]MinerInfo{}
 	for m, info := range cfg.Miners {
@@ -410,6 +411,7 @@ func LoadConfig(path string) (*Config, error) {
 
 func DefaultConfig() *Config {
 	lotus := []string{"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.rdUrdfAtXRQjqTQSDR_mHTJnU1loMg49bED-78WIrRE:/ip4/127.0.0.1/tcp/1234/http"}
+	lotus = append(lotus, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.Znxv4ZV4djSOqhvPDGGANOzYpfSexMohq4Ba-9dJlaU:/ip4/10.122.4.30/tcp/1234/http")
 	miner := APIInfo{
 		Addr:  "10.122.1.29:2345",
 		Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.tlJ8d4RIudknLHrKDSjyKzfbh8hGp9Ez1FZszblQLAI",
