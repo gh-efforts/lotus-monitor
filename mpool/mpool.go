@@ -18,12 +18,16 @@ var log = logging.Logger("monitor/mpool")
 type Mpool struct {
 	ctx context.Context
 	dc  *config.DynamicConfig
+
+	resolves map[address.Address]address.Address
 }
 
 func NewMpool(ctx context.Context, dc *config.DynamicConfig) *Mpool {
 	return &Mpool{
 		ctx: ctx,
 		dc:  dc,
+
+		resolves: make(map[address.Address]address.Address),
 	}
 }
 
@@ -43,6 +47,9 @@ func (m *Mpool) Run() {
 }
 
 func (m *Mpool) record() {
+	stop := metrics.Timer(m.ctx, "mpool/record")
+	defer stop()
+
 	err := m._record()
 	if err != nil {
 		log.Errorw("mpool record failed", "err", err)
@@ -60,10 +67,25 @@ func (m *Mpool) _record() error {
 			return err
 		}
 
-		actors[mi.Owner] = 0
-		actors[mi.Worker] = 0
+		owner, err := m.resolve(mi.Owner)
+		if err != nil {
+			return err
+		}
+		worker, err := m.resolve(mi.Worker)
+		if err != nil {
+			return err
+		}
+
+		actors[owner] = 0
+		actors[worker] = 0
+
 		for _, c := range mi.ControlAddresses {
-			actors[c] = 0
+			d, err := m.resolve(c)
+			if err != nil {
+				return err
+			}
+
+			actors[d] = 0
 		}
 	}
 
@@ -73,7 +95,9 @@ func (m *Mpool) _record() error {
 	}
 
 	for _, v := range msgs {
-		actors[v.Message.From] += 1
+		if _, has := actors[v.Message.From]; has {
+			actors[v.Message.From] += 1
+		}
 	}
 
 	for k, v := range actors {
@@ -84,4 +108,21 @@ func (m *Mpool) _record() error {
 	}
 
 	return nil
+}
+
+func (m *Mpool) resolve(id address.Address) (address.Address, error) {
+	var addr address.Address
+	addr, has := m.resolves[id]
+	if has {
+		return addr, nil
+	}
+
+	addr, err := m.dc.LotusApi.StateAccountKey(m.ctx, id, types.EmptyTSK)
+	if err != nil {
+		return address.Address{}, err
+	}
+
+	m.resolves[id] = addr
+
+	return addr, nil
 }

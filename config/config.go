@@ -425,8 +425,6 @@ func DefaultConfig() *Config {
 	miners := make(map[string]APIInfo)
 	miners["t017387"] = miner
 	miners["t028064"] = miner64
-	miners["t01037"] = APIInfo{}
-	miners["t03751"] = APIInfo{}
 
 	running := map[abi.SectorSize]map[sealtasks.TaskType]Duration{}
 	entry32 := map[sealtasks.TaskType]Duration{
