@@ -62,6 +62,8 @@ var (
 
 	ControlDays = stats.Float64("control/days", "control address available days", stats.UnitDimensionless)
 
+	MpoolMsgNumber = stats.Int64("mpool/msg", "number of messages in mpool for specified address", stats.UnitDimensionless)
+
 	SelfError          = stats.Int64("self/error", "couter for monitor error", stats.UnitDimensionless)
 	SelfRecordDuration = stats.Float64("self/record", "duration of every record", stats.UnitMilliseconds)
 )
@@ -155,6 +157,11 @@ var (
 		Aggregation: view.LastValue(),
 		TagKeys:     []tag.Key{MinerID, ActorAddress},
 	}
+	MpoolMsgNumberView = &view.View{
+		Measure:     MpoolMsgNumber,
+		Aggregation: view.LastValue(),
+		TagKeys:     []tag.Key{ActorAddress},
+	}
 	SelfErrorView = &view.View{
 		Measure:     SelfError,
 		Aggregation: view.Count(),
@@ -185,6 +192,7 @@ var Views = []*view.View{
 	BlockOrphanView,
 	BlockTookDurationView,
 	ControlDaysView,
+	MpoolMsgNumberView,
 	SelfErrorView,
 	SelfRecordDurationView,
 }

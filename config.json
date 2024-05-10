@@ -1,24 +1,16 @@
 {
 	"lotus": [
-		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.rdUrdfAtXRQjqTQSDR_mHTJnU1loMg49bED-78WIrRE:/ip4/127.0.0.1/tcp/1234/http",
+		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.to6nHD_cmf99cmmV8di59rTuf4evgVN0Kp0a1tN0Tf0:/ip4/127.0.0.1/tcp/1234/http",
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.Znxv4ZV4djSOqhvPDGGANOzYpfSexMohq4Ba-9dJlaU:/ip4/10.122.4.30/tcp/1234/http"
 	],
 	"miners": {
-		"t01037": {
-			"addr": "",
-			"token": ""
-		},
 		"t017387": {
-			"addr": "10.122.1.29:2345",
+			"addr": "10.122.6.17:2345",
 			"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.tlJ8d4RIudknLHrKDSjyKzfbh8hGp9Ez1FZszblQLAI"
 		},
 		"t028064": {
-			"addr": "10.122.1.29:2346",
+			"addr": "10.122.6.17:2346",
 			"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.7ZoJAcyY9ictWUdWsiV5AwmSTPHCczkT8Y6mTiN3Azw"
-		},
-		"t03751": {
-			"addr": "",
-			"token": ""
 		}
 	},
 	"running": {
@@ -41,7 +33,8 @@
 		"lotus": "30s",
 		"miner": "5m0s",
 		"filFox": "1h0m0s",
-		"blocks": "1m0s"
+		"blocks": "1m0s",
+		"mpool": "3m0s"
 	},
 	"filFoxURL": "https://calibration.filfox.info/api/v1",
 	"orphanCheckHeight": 3

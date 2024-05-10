@@ -24,6 +24,7 @@ import (
 	"github.com/gh-efforts/lotus-monitor/filfox"
 	"github.com/gh-efforts/lotus-monitor/fullnode"
 	"github.com/gh-efforts/lotus-monitor/metrics"
+	"github.com/gh-efforts/lotus-monitor/mpool"
 	"github.com/gh-efforts/lotus-monitor/storageminer"
 )
 
@@ -110,6 +111,7 @@ var runCmd = &cli.Command{
 		storageminer.NewStorageMiner(ctx, dc).Run()
 		filfox.NewFilFox(ctx, dc).Run()
 		control.NewControl(ctx, dc).Run()
+		mpool.NewMpool(ctx, dc).Run()
 
 		listen := cctx.String("listen")
 		log.Infow("monitor server", "listen", listen)
