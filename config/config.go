@@ -53,6 +53,7 @@ type RecordInterval struct {
 	Miner  Duration `json:"miner"`
 	FilFox Duration `json:"filFox"`
 	Blocks Duration `json:"blocks"`
+	Mpool  Duration `json:"mpool"`
 }
 
 type Config struct {
@@ -410,14 +411,14 @@ func LoadConfig(path string) (*Config, error) {
 }
 
 func DefaultConfig() *Config {
-	lotus := []string{"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.rdUrdfAtXRQjqTQSDR_mHTJnU1loMg49bED-78WIrRE:/ip4/127.0.0.1/tcp/1234/http"}
+	lotus := []string{"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.to6nHD_cmf99cmmV8di59rTuf4evgVN0Kp0a1tN0Tf0:/ip4/127.0.0.1/tcp/1234/http"}
 	lotus = append(lotus, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.Znxv4ZV4djSOqhvPDGGANOzYpfSexMohq4Ba-9dJlaU:/ip4/10.122.4.30/tcp/1234/http")
 	miner := APIInfo{
-		Addr:  "10.122.1.29:2345",
+		Addr:  "10.122.6.17:2345",
 		Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.tlJ8d4RIudknLHrKDSjyKzfbh8hGp9Ez1FZszblQLAI",
 	}
 	miner64 := APIInfo{
-		Addr:  "10.122.1.29:2346",
+		Addr:  "10.122.6.17:2346",
 		Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.7ZoJAcyY9ictWUdWsiV5AwmSTPHCczkT8Y6mTiN3Azw",
 	}
 
@@ -451,6 +452,7 @@ func DefaultConfig() *Config {
 		Miner:  Duration(time.Minute * 5),
 		FilFox: Duration(time.Hour),
 		Blocks: Duration(time.Minute),
+		Mpool:  Duration(time.Minute * 3),
 	}
 
 	return &Config{
