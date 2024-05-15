@@ -63,6 +63,7 @@ type Config struct {
 	RecordInterval    RecordInterval                                     `json:"recordInterval"`
 	FilFoxURL         string                                             `json:"filFoxURL"`
 	OrphanCheckHeight int                                                `json:"orphanCheckHeight"`
+	OrphanReset       Duration                                           `jsonn:"orphanReset"`
 }
 
 type MinerInfo struct {
@@ -85,6 +86,7 @@ type DynamicConfig struct {
 	RecordInterval    RecordInterval
 	FilFoxURL         string
 	OrphanCheckHeight int
+	OrphanReset       Duration
 
 	lk     sync.RWMutex
 	miners map[address.Address]MinerInfo
@@ -187,6 +189,7 @@ func NewDynamicConfig(ctx context.Context, path string) (*DynamicConfig, error) 
 		RecordInterval:    cfg.RecordInterval,
 		FilFoxURL:         cfg.FilFoxURL,
 		OrphanCheckHeight: cfg.OrphanCheckHeight,
+		OrphanReset:       cfg.OrphanReset,
 		miners:            miners,
 	}
 	dc.watch()
@@ -460,6 +463,7 @@ func DefaultConfig() *Config {
 		RecordInterval:    interval,
 		FilFoxURL:         "https://calibration.filfox.info/api/v1", //mainnet: "https://filfox.info/api/v1"
 		OrphanCheckHeight: 3,
+		OrphanReset:       Duration(time.Minute * 2),
 	}
 }
 

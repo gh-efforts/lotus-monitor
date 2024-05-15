@@ -141,7 +141,7 @@ func (b *Blocks) recordOrphan(block Block) {
 	)
 	stats.Record(ctx, metrics.BlockOrphan.M(1))
 
-	time.AfterFunc(time.Minute, func() {
+	time.AfterFunc(time.Duration(b.dc.OrphanReset), func() {
 		stats.Record(ctx, metrics.BlockOrphan.M(0))
 	})
 }

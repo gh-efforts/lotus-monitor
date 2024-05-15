@@ -37,5 +37,6 @@
 		"mpool": "3m0s"
 	},
 	"filFoxURL": "https://calibration.filfox.info/api/v1",
-	"orphanCheckHeight": 3
+	"orphanCheckHeight": 3,
+	"OrphanReset": "2m0s"
 }
