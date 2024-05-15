@@ -67,16 +67,11 @@ func (m *Mpool) _record() error {
 			return err
 		}
 
-		owner, err := m.resolve(mi.Owner)
-		if err != nil {
-			return err
-		}
 		worker, err := m.resolve(mi.Worker)
 		if err != nil {
 			return err
 		}
 
-		actors[owner] = 0
 		actors[worker] = 0
 
 		for _, c := range mi.ControlAddresses {
