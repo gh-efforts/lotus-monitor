@@ -13,13 +13,14 @@ lotus-monitor 使用 lotus 和 miner 的API，把监控项转化为 prometheus m
 - faulty sectors
 - active sectors
 - live sectors
-- current deadline proven cost
+- current deadline proven cost(windowPost)
 - owner/worker/control balance
 - sealing jobs timeout count
 - sealing jobs count
 - miner power
 - control address available days
 - mpool message count
+- spark retrieval rate
 
 ## 部署
 ```bash
