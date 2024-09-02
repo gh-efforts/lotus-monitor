@@ -19,7 +19,7 @@ import (
 
 var log = logging.Logger("monitor/spark")
 
-const BaseURL = "http://stats.filspark.com"
+const BaseURL = "https://stats.filspark.com"
 
 type Spark struct {
 	ctx context.Context
@@ -28,8 +28,8 @@ type Spark struct {
 
 type RetrievalRate struct {
 	MinerID     string  `json:"miner_id"`
-	Total       float64 `json:"total"`
-	Successful  float64 `json:"successful"`
+	Total       string  `json:"total"`
+	Successful  string  `json:"successful"`
 	SuccessRate float64 `json:"success_rate"`
 }
 
@@ -41,6 +41,12 @@ func New(ctx context.Context, dc *config.DynamicConfig) *Spark {
 }
 
 func (s *Spark) Run() {
+	//record once immediately
+	if err := s.sparkRecords(); err != nil {
+		log.Errorw("sparkRecords", "error", err)
+	}
+
+	//record every day at 9am
 	r := cron.New()
 	_, err := r.AddFunc("CRON_TZ=Asia/Shanghai 00 09 * * *", func() {
 		if err := s.sparkRecords(); err != nil {

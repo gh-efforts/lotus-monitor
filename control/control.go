@@ -34,16 +34,25 @@ func NewControl(ctx context.Context, dc *config.DynamicConfig) *Control {
 }
 
 func (c *Control) Run() {
-	//上海时间每天9:30执行一次
+	//record once immediately
+	if err := c.controlRecords(); err != nil {
+		log.Errorw("controlRecords", "error", err)
+	}
+
+	//record every day at 9:30am
 	r := cron.New()
-	_, err := r.AddFunc("CRON_TZ=Asia/Shanghai 30 09 * * *", func() { c.controlRecords() })
+	_, err := r.AddFunc("CRON_TZ=Asia/Shanghai 30 09 * * *", func() {
+		if err := c.controlRecords(); err != nil {
+			log.Errorw("controlRecords", "error", err)
+		}
+	})
 	if err != nil {
 		panic(err)
 	}
 	r.Start()
 }
 
-func (c *Control) controlRecords() {
+func (c *Control) controlRecords() error {
 	stop := metrics.Timer(c.ctx, "control/controlRecords")
 	defer stop()
 
@@ -51,13 +60,11 @@ func (c *Control) controlRecords() {
 
 	tody, err := c.dc.LotusApi.ChainHead(c.ctx)
 	if err != nil {
-		log.Error(err)
-		return
+		return err
 	}
 	yesterday, err := c.dc.LotusApi.ChainGetTipSetByHeight(c.ctx, tody.Height()-abi.ChainEpoch(2880), types.EmptyTSK)
 	if err != nil {
-		log.Error(err)
-		return
+		return err
 	}
 
 	miners := c.dc.MinersList()
@@ -67,6 +74,8 @@ func (c *Control) controlRecords() {
 			metrics.RecordError(c.ctx, "control/controlRecord")
 		}
 	}
+
+	return nil
 }
 
 func (c *Control) controlRecord(maddr address.Address, tody, yesterday types.TipSetKey) error {
